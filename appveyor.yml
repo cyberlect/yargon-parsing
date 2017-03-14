@@ -1,0 +1,7 @@
+version: "#{build}"
+image: Visual Studio 2017
+configuration: Release
+install:
+- nuget restore Yargon.Parsing.sln
+build_script:
+- msbuild Yargon.Parsing.sln
