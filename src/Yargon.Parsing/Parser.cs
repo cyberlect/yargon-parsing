@@ -199,6 +199,43 @@ namespace Yargon.Parsing
         }
 
         /// <summary>
+        /// Creates a parser that fails when the end of the input has been reached.
+        /// </summary>
+        /// <typeparam name="T">The type of result of the parser.</typeparam>
+        /// <typeparam name="TToken">The type of tokens in the token stream.</typeparam>
+        /// <param name="parser">The input parser.</param>
+        /// <returns>The created parser.</returns>
+        public static Parser<T, TToken> NotEnd<T, TToken>(this Parser<T, TToken> parser)
+        {
+            #region Contract
+            if (parser == null)
+                throw new ArgumentNullException(nameof(parser));
+            #endregion
+
+            IParseResult<T, TToken> Parser(ITokenStream<TToken> input)
+            {
+                #region Contract
+                if (input == null)
+                    throw new ArgumentNullException(nameof(input));
+                #endregion
+
+                var result = parser(input);
+
+                if (result.Successful)
+                {
+                    if (!result.Remainder.AtEnd)
+                        return result;
+                    else
+                        return ParseResult.Fail<T, TToken>(input, $"Unexpected end of input.");
+                }
+                else
+                    return ParseResult.Fail<T, TToken>(input);
+            }
+
+            return Parser;
+        }
+
+        /// <summary>
         /// Creates a parser that projects the result of the parser.
         /// </summary>
         /// <typeparam name="T">The type of result of the parser.</typeparam>

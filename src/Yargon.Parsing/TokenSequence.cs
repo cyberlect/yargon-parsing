@@ -25,7 +25,7 @@ namespace Yargon.Parsing
         public bool AtEnd => this.offset >= this.innerList.Count;
 
         /// <inheritdoc />
-        public T Current => AtEnd ? default(T) : this.innerList[this.offset];
+        public T Current => this.AtEnd ? default(T) : this.innerList[this.offset];
 
         #region Constructors
         /// <summary>
