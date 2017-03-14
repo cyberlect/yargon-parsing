@@ -7,4 +7,4 @@ before_build:
 build:
   verbosity: minimal
 test_script:
-- ps: dotnet test
+- ps: dotnet test test/Yargon.Parsing.Tests
