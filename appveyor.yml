@@ -10,10 +10,10 @@ build:
   verbosity: minimal
 
 test_script:
-- ps: dotnet test -c $env:CONFIGURATION ./test/Yargon.Parsing.Tests/
+- ps: dotnet test -c $env:CONFIGURATION ./test/Yargon.Parsing.Tests/Yargon.Parsing.Tests.csproj
 
 after_test:
-- ps: dotnet pack -c $env:CONFIGURATION ./src/Yargon.Parsing/
+- ps: dotnet pack -c $env:CONFIGURATION ./src/Yargon.Parsing/Yargon.Parsing.csproj
 
 artifacts:
 - path: 'src/Yargon.Parsing/bin/Release/*.nupkg'
