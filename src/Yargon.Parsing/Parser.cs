@@ -1,8 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using JetBrains.Annotations;
 
 namespace Yargon.Parsing
 {
+    // This code was heavily inspired by and based upon
+    // the parser combinators in the Sprache library
+    // originally written by Nicholas Blumhardt,
+    // licensed under the MIT license.
+
     /// <summary>
     /// A parser, that takes a token stream and produces a result and the remaining input.
     /// </summary>
@@ -17,6 +24,8 @@ namespace Yargon.Parsing
     /// </summary>
     public static class Parser
     {
+        // Parser Constructors
+
         /// <summary>
         /// Creates a parser that always succeeds and returns a value
         /// without consuming any input.
@@ -83,6 +92,9 @@ namespace Yargon.Parsing
                     throw new ArgumentNullException(nameof(input));
                 #endregion
 
+                if (input.AtEnd)
+                    return ParseResult.Fail<TToken, TToken>(input, "Unexpected end of input.");
+
                 var token = input.Current;
                 if (predicate(token))
                     return ParseResult.Success(input.Advance(), token);
@@ -91,6 +103,59 @@ namespace Yargon.Parsing
             }
 
             return Parser;
+        }
+
+
+
+        /// <summary>
+        /// Creates a parser that projects the result of the parser.
+        /// </summary>
+        /// <typeparam name="TSource">The type of result of the parser.</typeparam>
+        /// <typeparam name="TResult">The type of result of the function.</typeparam>
+        /// <typeparam name="TToken">The type of tokens in the token stream.</typeparam>
+        /// <param name="parser">The first parser.</param>
+        /// <param name="selector">A function applied to the result value.</param>
+        /// <returns>The created parser.</returns>
+        public static Parser<TResult, TToken> Select<TSource, TResult, TToken>(
+            this Parser<TSource, TToken> parser,
+            Func<TSource, TResult> selector)
+        {
+            #region Contract
+            if (parser == null)
+                throw new ArgumentNullException(nameof(parser));
+            if (selector == null)
+                throw new ArgumentNullException(nameof(selector));
+            #endregion
+
+            return parser.Then(t => Return<TResult, TToken>(selector(t)));
+        }
+
+        /// <summary>
+        /// Creates a parser that projects and flattens.
+        /// </summary>
+        /// <typeparam name="TSource">The type of result of the parser.</typeparam>
+        /// <typeparam name="TCollection">The type of result of the filter.</typeparam>
+        /// <typeparam name="TResult">The type of result of the projector.</typeparam>
+        /// <typeparam name="TToken">The type of tokens.</typeparam>
+        /// <param name="parser">The parser.</param>
+        /// <param name="resultSelector">The filter function.</param>
+        /// <param name="collectionSelector">The projector function.</param>
+        /// <returns>The created parser.</returns>
+        public static Parser<TResult, TToken> SelectMany<TSource, TCollection, TResult, TToken>(
+            this Parser<TSource, TToken> parser,
+            Func<TSource, Parser<TCollection, TToken>> resultSelector,
+            Func<TSource, TCollection, TResult> collectionSelector)
+        {
+            #region Contract
+            if (parser == null)
+                throw new ArgumentNullException(nameof(parser));
+            if (resultSelector == null)
+                throw new ArgumentNullException(nameof(resultSelector));
+            if (collectionSelector == null)
+                throw new ArgumentNullException(nameof(collectionSelector));
+            #endregion
+
+            return parser.Then(t => resultSelector(t).Select(u => collectionSelector(t, u)));
         }
 
         /// <summary>
@@ -236,27 +301,6 @@ namespace Yargon.Parsing
         }
 
         /// <summary>
-        /// Creates a parser that projects the result of the parser.
-        /// </summary>
-        /// <typeparam name="T">The type of result of the parser.</typeparam>
-        /// <typeparam name="U">The type of result of the function.</typeparam>
-        /// <typeparam name="TToken">The type of tokens in the token stream.</typeparam>
-        /// <param name="parser">The first parser.</param>
-        /// <param name="convert">A function applied to the result value.</param>
-        /// <returns>The created parser.</returns>
-        public static Parser<U, TToken> Select<T, U, TToken>(this Parser<T, TToken> parser, Func<T, U> convert)
-        {
-            #region Contract
-            if (parser == null)
-                throw new ArgumentNullException(nameof(parser));
-            if (convert == null)
-                throw new ArgumentNullException(nameof(convert));
-            #endregion
-
-            return parser.Then(t => Return<U, TToken>(convert(t)));
-        }
-
-        /// <summary>
         /// Creates a parser that tries the first parser, and if it fails, continues with the second parser.
         /// </summary>
         /// <typeparam name="T">The type of result of the parsers.</typeparam>
@@ -317,31 +361,74 @@ namespace Yargon.Parsing
         }
 
         /// <summary>
-        /// Creates a parser that projects and flattens.
+        /// Creates a parser that parses a sequence of exactly one element.
         /// </summary>
         /// <typeparam name="T">The type of result of the parser.</typeparam>
-        /// <typeparam name="U">The type of result of the filter.</typeparam>
-        /// <typeparam name="V">The type of result of the projector.</typeparam>
         /// <typeparam name="TToken">The type of tokens.</typeparam>
-        /// <param name="parser">The parser.</param>
-        /// <param name="filter">The filter function.</param>
-        /// <param name="projector">The projector function.</param>
-        /// <returns>The created tokens.</returns>
-        public static Parser<V, TToken> SelectMany<T, U, V, TToken>(
-            this Parser<T, TToken> parser,
-            Func<T, Parser<U, TToken>> filter,
-            Func<T, U, V> projector)
+        /// <param name="parser">The parser to repeat.</param>
+        /// <returns>The created parser.</returns>
+        public static Parser<IEnumerable<T>, TToken> Once<T, TToken>(this Parser<T, TToken> parser)
         {
             #region Contract
             if (parser == null)
                 throw new ArgumentNullException(nameof(parser));
-            if (filter == null)
-                throw new ArgumentNullException(nameof(filter));
-            if (projector == null)
-                throw new ArgumentNullException(nameof(projector));
             #endregion
 
-            return parser.Then(t => filter(t).Select(u => projector(t, u)));
+            return parser.Select(result => new[] { result });
+        }
+
+        /// <summary>
+        /// Creates a parser that parses a sequence of one or more elements.
+        /// </summary>
+        /// <typeparam name="T">The type of result of the parser.</typeparam>
+        /// <typeparam name="TToken">The type of tokens.</typeparam>
+        /// <param name="parser">The parser to repeat.</param>
+        /// <returns>The created parser.</returns>
+        public static Parser<IEnumerable<T>, TToken> AtLeastOnce<T, TToken>(this Parser<T, TToken> parser)
+        {
+            #region Contract
+            if (parser == null)
+                throw new ArgumentNullException(nameof(parser));
+            #endregion
+
+            return parser.Once().Then(first => parser.Many().Select(first.Concat));
+        }
+
+        /// <summary>
+        /// Creates a parser that parses a sequence of zero or more elements.
+        /// </summary>
+        /// <typeparam name="T">The type of result of the parser.</typeparam>
+        /// <typeparam name="TToken">The type of tokens.</typeparam>
+        /// <param name="parser">The parser to repeat.</param>
+        /// <returns>The created parser.</returns>
+        public static Parser<IEnumerable<T>, TToken> Many<T, TToken>(this Parser<T, TToken> parser)
+        {
+            #region Contract
+            if (parser == null)
+                throw new ArgumentNullException(nameof(parser));
+            #endregion
+
+            IParseResult<IEnumerable<T>, TToken> Parser(ITokenStream<TToken> input)
+            {
+                #region Contract
+                if (input == null)
+                    throw new ArgumentNullException(nameof(input));
+                #endregion
+
+                var results = new List<T>();
+                var remainder = input;
+                var result = parser(input);
+                while (result.Successful || remainder.Equals(result.Remainder))
+                {
+                    results.Add(result.Value);
+                    remainder = result.Remainder;
+                    result = parser(remainder);
+                }
+
+                return ParseResult.Success<IEnumerable<T>, TToken>(remainder, results);
+            }
+
+            return Parser;
         }
     }
 }

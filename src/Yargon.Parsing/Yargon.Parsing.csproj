@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard1.4</TargetFramework>
-    <VersionPrefix>1.0.1</VersionPrefix>
+    <VersionPrefix>1.0.2</VersionPrefix>
     <VersionSuffix></VersionSuffix>
     <Authors>Daniel Pelsmaeker</Authors>
     <Company>Daniel Pelsmaeker</Company>
@@ -20,7 +20,7 @@
 
   <ItemGroup>
     <PackageReference Include="System.ValueTuple" Version="4.3.0" />
-    <PackageReference Include="Virtlink.Utilib" Version="1.20.0" />
+    <PackageReference Include="Virtlink.Utilib" Version="1.22.0" />
   </ItemGroup>
 
 </Project>

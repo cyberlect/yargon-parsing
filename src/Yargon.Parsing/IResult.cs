@@ -14,7 +14,7 @@ namespace Yargon.Parsing
         /// Gets whether the operation successfully completed.
         /// </summary>
         /// <value><see langword="true"/> when the operation was successful;
-        /// otherwise, <see langword="fakse"/>.</value>
+        /// otherwise, <see langword="false"/>.</value>
         bool Successful { get; }
 
         /// <summary>
