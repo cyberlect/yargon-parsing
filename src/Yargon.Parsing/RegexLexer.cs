@@ -1,11 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Yargon.Parsing
 {
+    /// <summary>
+    /// A regular expression-based lexer.
+    /// </summary>
+    /// <typeparam name="TTokenType">The type of token type.</typeparam>
     public class RegexLexer<TTokenType> : ILexer<Token<TTokenType>>
     {
         private readonly IReadOnlyList<(TTokenType, Regex)> tokenExpressions;
@@ -17,14 +22,24 @@ namespace Yargon.Parsing
         /// <param name="tokenExpressions">The token expressions, which are tuples of a token type
         /// and a corresponding regular expression. Regular expressions that occur earlier in the list
         /// are given priority of later expressions when they both match.</param>
-        public RegexLexer(IReadOnlyList<(TTokenType, Regex)> tokenExpressions)
+        public RegexLexer(IReadOnlyDictionary<String, TTokenType> tokenExpressions)
         {
             #region Contract
             if (tokenExpressions == null)
                 throw new ArgumentNullException(nameof(tokenExpressions));
             #endregion
 
-            this.tokenExpressions = tokenExpressions;
+            this.tokenExpressions = ToRegexList(tokenExpressions);
+        }
+
+        /// <summary>
+        /// Creates a list of regexes.
+        /// </summary>
+        /// <param name="expressions">The token expressions.</param>
+        /// <returns>The regexes.</returns>
+        private static IReadOnlyList<(TTokenType, Regex)> ToRegexList(IReadOnlyDictionary<String, TTokenType> expressions)
+        {
+            return expressions.Select(kv => (kv.Value, new Regex("\\G" + kv.Key, RegexOptions.Compiled))).ToArray();
         }
         #endregion
 
