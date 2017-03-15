@@ -14,10 +14,23 @@ namespace Yargon.Parsing
         /// <inheritdoc />
         public bool Successful { get; }
 
+        private readonly T value;
+
         /// <inheritdoc />
         [CanBeNull]
-        public T Value { get; }
-        
+        public T Value
+        {
+            get
+            {
+                #region Contract
+                if (!this.Successful)
+                    throw new InvalidOperationException("No value available.");
+                #endregion
+
+                return this.value;
+            }
+        }
+
         /// <inheritdoc />
         public IReadOnlyCollection<String> Messages { get; }
 
@@ -36,7 +49,7 @@ namespace Yargon.Parsing
             #endregion
 
             this.Successful = successful;
-            this.Value = value;
+            this.value = value;
             this.Messages = messages;
         }
         #endregion

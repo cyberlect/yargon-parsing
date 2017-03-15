@@ -31,28 +31,28 @@ namespace Yargon.Parsing
         /// Creates a parser that projects and flattens.
         /// </summary>
         /// <typeparam name="TSource">The type of result of the parser.</typeparam>
-        /// <typeparam name="TCollection">The type of result of the filter.</typeparam>
-        /// <typeparam name="TResult">The type of result of the projector.</typeparam>
+        /// <typeparam name="TCollection">The type of intermediate result.</typeparam>
+        /// <typeparam name="TResult">The type of element in the resulting sequence.</typeparam>
         /// <typeparam name="TToken">The type of tokens.</typeparam>
         /// <param name="parser">The parser.</param>
-        /// <param name="resultSelector">The filter function.</param>
-        /// <param name="collectionSelector">The projector function.</param>
+        /// <param name="collectionSelector">The function to apply to each result.</param>
+        /// <param name="resultSelector">The function to apply to each element of each result.</param>
         /// <returns>The created parser.</returns>
         public static Parser<TResult, TToken> SelectMany<TSource, TCollection, TResult, TToken>(
             this Parser<TSource, TToken> parser,
-            Func<TSource, Parser<TCollection, TToken>> resultSelector,
-            Func<TSource, TCollection, TResult> collectionSelector)
+            Func<TSource, Parser<TCollection, TToken>> collectionSelector,
+            Func<TSource, TCollection, TResult> resultSelector)
         {
             #region Contract
             if (parser == null)
                 throw new ArgumentNullException(nameof(parser));
-            if (resultSelector == null)
-                throw new ArgumentNullException(nameof(resultSelector));
             if (collectionSelector == null)
                 throw new ArgumentNullException(nameof(collectionSelector));
+            if (resultSelector == null)
+                throw new ArgumentNullException(nameof(resultSelector));
             #endregion
 
-            return parser.Then(t => resultSelector(t).Select(u => collectionSelector(t, u)));
+            return parser.Then(t => collectionSelector(t).Select(u => resultSelector(t, u)));
         }
 
         /// <summary>

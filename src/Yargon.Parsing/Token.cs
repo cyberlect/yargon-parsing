@@ -102,6 +102,6 @@ namespace Yargon.Parsing
         /// <inheritdoc />
         public override string ToString()
             // Should not be escaped.
-            => this.Value;
+            => $"{this.Value} ({this.Type})";
     }
 }

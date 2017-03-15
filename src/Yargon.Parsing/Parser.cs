@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using JetBrains.Annotations;
 
 namespace Yargon.Parsing
 {
@@ -58,30 +55,7 @@ namespace Yargon.Parsing
         }
 
         /// <summary>
-        /// Creates a parser that executes the specified parser after this parser.
-        /// </summary>
-        /// <typeparam name="TResult">The type of result of the second parser.</typeparam>
-        /// <typeparam name="T">The type of result of the first parser.</typeparam>
-        /// <typeparam name="TToken">The type of tokens in the token stream.</typeparam>
-        /// <param name="first">The first parser.</param>
-        /// <param name="second">The second parser.</param>
-        /// <returns>The created parser.</returns>
-        public static Parser<TResult, TToken> Then<TResult, T, TToken>(
-            this Parser<T, TToken> first,
-            Parser<TResult, TToken> second)
-        {
-            #region Contract
-            if (first == null)
-                throw new ArgumentNullException(nameof(first));
-            if (second == null)
-                throw new ArgumentNullException(nameof(second));
-            #endregion
-
-            return first.Then(_ => second);
-        }
-
-        /// <summary>
-        /// Creates a parser that executes the specified parser after this parser.
+        /// Creates a parser that executes the parser returned from the specified function after this parser.
         /// </summary>
         /// <typeparam name="TResult">The type of result of the second parser.</typeparam>
         /// <typeparam name="T">The type of result of the first parser.</typeparam>
@@ -116,6 +90,30 @@ namespace Yargon.Parsing
             }
 
             return Parser;
+        }
+
+        /// <summary>
+        /// Creates a parser that discards the result on success
+        /// and executes the specified parser after this parser.
+        /// </summary>
+        /// <typeparam name="TResult">The type of result of the second parser.</typeparam>
+        /// <typeparam name="T">The type of result of the first parser.</typeparam>
+        /// <typeparam name="TToken">The type of tokens in the token stream.</typeparam>
+        /// <param name="first">The first parser.</param>
+        /// <param name="second">The second parser.</param>
+        /// <returns>The created parser.</returns>
+        public static Parser<TResult, TToken> Then<TResult, T, TToken>(
+            this Parser<T, TToken> first,
+            Parser<TResult, TToken> second)
+        {
+            #region Contract
+            if (first == null)
+                throw new ArgumentNullException(nameof(first));
+            if (second == null)
+                throw new ArgumentNullException(nameof(second));
+            #endregion
+
+            return first.Then(_ => second);
         }
 
         /// <summary>
@@ -161,27 +159,6 @@ namespace Yargon.Parsing
         }
 
         /// <summary>
-        /// Creates a parser that discards the input parser's result and returns its own.
-        /// </summary>
-        /// <typeparam name="TResult">The type of result.</typeparam>
-        /// <typeparam name="TDiscard">The type of result of the parser.</typeparam>
-        /// <typeparam name="TToken">The type of tokens in the token stream.</typeparam>
-        /// <param name="parser">The first parser.</param>
-        /// <param name="value">The actual value to return.</param>
-        /// <returns>The created parser.</returns>
-        public static Parser<TResult, TToken> Return<TResult, TDiscard, TToken>(
-            this Parser<TDiscard, TToken> parser,
-            [CanBeNull] TResult value)
-        {
-            #region Contract
-            if (parser == null)
-                throw new ArgumentNullException(nameof(parser));
-            #endregion
-
-            return parser.Select(t => value);
-        }
-
-        /// <summary>
         /// Creates a parser that applies the parser except when the specified parser succeeds.
         /// </summary>
         /// <typeparam name="TResult">The type of result of the parser.</typeparam>
@@ -211,8 +188,12 @@ namespace Yargon.Parsing
                 var result = except(input);
 
                 if (!result.Successful)
+                {
+                    // TODO: If this fails, create a new failure result with the input of this function
+                    // (instead of whatever input failed down the line).
                     return parser(input);
-                
+                }
+
                 return ParseResult.Fail<TResult, TToken>(input, "Parser should not have succeeded.");
             }
 

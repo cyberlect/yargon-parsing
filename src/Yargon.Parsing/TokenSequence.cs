@@ -9,7 +9,7 @@ namespace Yargon.Parsing
     /// <summary>
     /// A list of tokens.
     /// </summary>
-    public sealed class TokenSequence<T> : ITokenStream<T>, IEnumerable<T>
+    public sealed class TokenSequence<T> : ITokenStream<T>
     {
         /// <summary>
         /// The inner list.
@@ -26,6 +26,23 @@ namespace Yargon.Parsing
 
         /// <inheritdoc />
         public T Current => this.AtEnd ? default(T) : this.innerList[this.offset];
+
+        /// <inheritdoc />
+        public int Count => this.innerList.Count - this.offset;
+
+        /// <inheritdoc />
+        public T this[int index]
+        {
+            get
+            {
+                #region Contract
+                if (index < 0 || index >= this.Count)
+                    throw new ArgumentOutOfRangeException(nameof(index));
+                #endregion
+
+                return this.innerList[this.offset + index];
+            }
+        }
 
         #region Constructors
         /// <summary>
@@ -111,9 +128,9 @@ namespace Yargon.Parsing
         /// <inheritdoc />
         public IEnumerator<T> GetEnumerator()
         {
-            for (int i = this.offset; i < this.innerList.Count; i++)
+            for (int i = 0; i < this.Count; i++)
             {
-                yield return this.innerList[i];
+                yield return this[i];
             }
         }
 

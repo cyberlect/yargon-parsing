@@ -80,8 +80,8 @@ namespace Yargon.Parsing
 
                 var results = new List<T>();
                 var remainder = input;
-                var result = parser(input);
-                while (result.Successful || remainder.Equals(result.Remainder))
+                var result = parser(remainder);
+                while (result.Successful)
                 {
                     results.Add(result.Value);
                     remainder = result.Remainder;
@@ -111,8 +111,8 @@ namespace Yargon.Parsing
             if (until == null)
                 throw new ArgumentNullException(nameof(until));
             #endregion
-
-            return parser.Except(until).Many().Then(until.Return);
+            
+            return parser.Except(until).Many().Then(v => until.Select(_ => v));
         }
 
         /// <summary>
@@ -133,6 +133,46 @@ namespace Yargon.Parsing
             #endregion
 
             return first.Then(s => second.Select(s.Concat));
+        }
+
+        /// <summary>
+        /// Creates a parser that parses a sequence with an exact number of repetitions.
+        /// </summary>
+        /// <param name="parser">The parser to repeat.</param>
+        /// <param name="count">The number of repetitions.</param>
+        /// <returns>The parser.</returns>
+        public static Parser<IEnumerable<TResult>, TToken> Take<TResult, TToken>(this Parser<TResult, TToken> parser, int count)
+        {
+            #region Contract
+            if (parser == null)
+                throw new ArgumentNullException(nameof(parser));
+            if (count < 0)
+                throw new ArgumentOutOfRangeException(nameof(count));
+            #endregion
+
+            IParseResult<IEnumerable<TResult>, TToken> Parser(ITokenStream<TToken> input)
+            {
+                #region Contract
+                if (input == null)
+                    throw new ArgumentNullException(nameof(input));
+                #endregion
+
+                var results = new List<TResult>();
+                var remainder = input;
+                for (int i = 0; i < count; i++)
+                {
+                    var result = parser(remainder);
+                    if (!result.Successful)
+                        return ParseResult.Fail<IEnumerable<TResult>, TToken>(input, $"Expected {count} repetitions, got {i}.");
+
+                    results.Add(result.Value);
+                    remainder = result.Remainder;
+                }
+
+                return ParseResult.Success<IEnumerable<TResult>, TToken>(remainder, results);
+            }
+
+            return Parser;
         }
     }
 }

@@ -25,7 +25,7 @@ namespace Yargon.Parsing
         bool Successful { get; }
 
         /// <summary>
-        /// Gets the result of the operation.
+        /// Gets the result of the operation after the operation successfully completed.
         /// </summary>
         /// <value>The result of the operation; or the default of <typeparamref name="T"/>.</value>
         T Value { get; }
@@ -37,7 +37,7 @@ namespace Yargon.Parsing
         IReadOnlyCollection<String> Messages { get; }
 
         /// <summary>
-        /// Gets the remaining token stream after the operation completed.
+        /// Gets the remaining token stream after the operation successfully completed.
         /// </summary>
         /// <value>The remaining token stream.</value>
         ITokenStream<TToken> Remainder { get; }

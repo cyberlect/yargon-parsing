@@ -7,8 +7,8 @@ namespace Yargon.Parsing
     /// <summary>
     /// A stream of tokens.
     /// </summary>
-    /// <typeparam name="TToken"></typeparam>
-    public interface ITokenStream<out TToken>
+    /// <typeparam name="TToken">The type of tokens.</typeparam>
+    public interface ITokenStream<out TToken> : IReadOnlyList<TToken>
     {
         /// <summary>
         /// Gets whether the end of the input has been reached.

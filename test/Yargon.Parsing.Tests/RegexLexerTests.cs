@@ -33,11 +33,5 @@ namespace Yargon.Parsing
                 ("0", TokenType.Zero)
             }, tokens.Select(t => (t.Value, t.Type)));
         }
-
-        public enum TokenType
-        {
-            Zero,
-            One
-        }
     }
 }

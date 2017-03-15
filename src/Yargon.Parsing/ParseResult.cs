@@ -25,8 +25,21 @@ namespace Yargon.Parsing
         /// <inheritdoc />
         public IReadOnlyCollection<string> Messages => this.Result.Messages;
 
+        private readonly ITokenStream<TToken> remainder;
+
         /// <inheritdoc />
-        public ITokenStream<TToken> Remainder { get; }
+        public ITokenStream<TToken> Remainder
+        {
+            get
+            {
+                #region Contract
+                if (!this.Successful)
+                    throw new InvalidOperationException("No remainder available.");
+                #endregion
+
+                return this.remainder;
+            }
+        }
 
         #region Constructors
         /// <summary>
@@ -44,7 +57,7 @@ namespace Yargon.Parsing
             #endregion
 
             this.Result = result;
-            this.Remainder = remainder;
+            this.remainder = remainder;
         }
         #endregion
 
