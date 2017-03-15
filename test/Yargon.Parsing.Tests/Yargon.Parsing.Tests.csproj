@@ -3,7 +3,7 @@
   <PropertyGroup>    
     <TargetFramework>netcoreapp1.1</TargetFramework>
     <RootNamespace>Yargon.Parsing</RootNamespace>
-    <VersionPrefix>1.0.2</VersionPrefix>
+    <VersionPrefix>1.0.3</VersionPrefix>
     <VersionSuffix></VersionSuffix>
   </PropertyGroup>
 
