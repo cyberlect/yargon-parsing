@@ -93,38 +93,6 @@ namespace Yargon.Parsing
                 Assert.False(result.Successful);
                 Assert.Equal(new[] { "First parser error." }, result.Messages);
             }
-            
-            [Fact]
-            public void ReturnedParser_ShouldNotConsumeAnyInput_WhenBothParsersFail()
-            {
-                // Arrange
-                var firstParser = ConsumingParser(1).Then(FailParser<String>());
-                var exceptParser = ConsumingParser(1).Then(FailParser<String>());
-                var parser = firstParser.Except(exceptParser);
-                var tokens = CreateTokenStream(TokenType.Zero, TokenType.One, TokenType.Zero);
-
-                // Act
-                var result = parser(tokens);
-
-                // Assert
-                Assert.Equal(tokens, result.Remainder);
-            }
-
-            [Fact]
-            public void ReturnedParser_ShouldNotConsumeAnyInput_WhenExceptParserSucceeds()
-            {
-                // Arrange
-                var firstParser = ConsumingParser(1).Then(FailParser<String>());
-                var exceptParser = ConsumingParser(1);
-                var parser = firstParser.Except(exceptParser);
-                var tokens = CreateTokenStream(TokenType.Zero, TokenType.One, TokenType.Zero);
-
-                // Act
-                var result = parser(tokens);
-
-                // Assert
-                Assert.Equal(tokens, result.Remainder);
-            }
 
             [Fact]
             public void ReturnedParser_ShouldThrowArgumentNullException_WhenInputIsNull()

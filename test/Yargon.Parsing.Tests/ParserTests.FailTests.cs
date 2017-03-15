@@ -55,20 +55,6 @@ namespace Yargon.Parsing
             }
 
             [Fact]
-            public void ReturnedParser_ShouldNotConsumeAnyInput()
-            {
-                // Arrange
-                var parser = Parser.Fail<String, Token<TokenType>>();
-                var tokens = CreateTokenStream(TokenType.Zero, TokenType.One, TokenType.Zero);
-
-                // Act
-                var result = parser(tokens);
-
-                // Assert
-                Assert.Equal(tokens, result.Remainder);
-            }
-
-            [Fact]
             public void ReturnedParser_ShouldThrowArgumentNullException_WhenInputIsNull()
             {
                 // Arrange

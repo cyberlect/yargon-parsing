@@ -74,21 +74,6 @@ namespace Yargon.Parsing
                 Assert.False(result.Successful);
                 Assert.Equal(new [] { "Error!"}, result.Messages);
             }
-            
-            [Fact]
-            public void ReturnedParser_ShouldNotConsumeAnyInput_WhenItFails()
-            {
-                // Arrange
-                var firstParser = ConsumingParser(1).Then(FailParser<String>());
-                var parser = firstParser.Once();
-                var tokens = CreateTokenStream(TokenType.Zero, TokenType.One, TokenType.Zero);
-
-                // Act
-                var result = parser(tokens);
-
-                // Assert
-                Assert.Equal(tokens, result.Remainder);
-            }
 
             [Fact]
             public void ReturnedParser_ShouldThrowArgumentNullException_WhenInputIsNull()

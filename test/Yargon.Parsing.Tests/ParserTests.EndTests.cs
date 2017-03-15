@@ -73,7 +73,7 @@ namespace Yargon.Parsing
             {
                 // Arrange
                 var parser = Parser.End<Token<TokenType>>();
-                var tokens = CreateTokenStream(TokenType.Zero, TokenType.One, TokenType.Zero);
+                var tokens = CreateTokenStream<TokenType>();
 
                 // Act
                 var result = parser(tokens);

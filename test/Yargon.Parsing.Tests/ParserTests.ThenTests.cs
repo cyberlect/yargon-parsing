@@ -70,34 +70,6 @@ namespace Yargon.Parsing
                 // Assert
                 Assert.Equal(new[] { message }, result.Messages);
             }
-            
-            [Fact]
-            public void ReturnedParser_ShouldNotConsumeAnyInput_WhenFirstParserFails()
-            {
-                // Arrange
-                var parser = FailParser<Int32>().Then(v => Parser.Return<String, Token<TokenType>>("abc"));
-                var tokens = CreateTokenStream(TokenType.Zero, TokenType.One, TokenType.Zero);
-
-                // Act
-                var result = parser(tokens);
-
-                // Assert
-                Assert.Equal(tokens, result.Remainder);
-            }
-
-            [Fact]
-            public void ReturnedParser_ShouldNotConsumeAnyInput_WhenSecondParserFails()
-            {
-                // Arrange
-                var parser = SuccessParser<Int32>().Then(v => FailParser<String>());
-                var tokens = CreateTokenStream(TokenType.Zero, TokenType.One, TokenType.Zero);
-
-                // Act
-                var result = parser(tokens);
-
-                // Assert
-                Assert.Equal(tokens, result.Remainder);
-            }
 
             [Fact]
             public void ReturnedParser_ShouldThrowArgumentNullException_WhenInputIsNull()
