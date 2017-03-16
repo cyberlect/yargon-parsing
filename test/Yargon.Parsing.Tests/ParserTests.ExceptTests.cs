@@ -74,7 +74,7 @@ namespace Yargon.Parsing
 
                 // Assert
                 Assert.False(result.Successful);
-                Assert.Equal(new [] { "Except parser succeeded." }, result.Messages);
+                Assert.Equal(new [] { "Parser should not have succeeded." }, result.Messages);
             }
 
             [Fact]

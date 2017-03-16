@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using JetBrains.Annotations;
 using Virtlink.Utilib.Collections;
 
@@ -41,7 +42,7 @@ namespace Yargon.Parsing
         /// <param name="successful">Whether the operation completed successfully.</param>
         /// <param name="value">The result of the operation.</param>
         /// <param name="messages">The messages produced by the operation.</param>
-        public Result(bool successful, [CanBeNull] T value, IReadOnlyCollection<String> messages)
+        public Result(bool successful, [CanBeNull] T value, IEnumerable<String> messages)
         {
             #region Contract
             if (messages == null)
@@ -50,7 +51,7 @@ namespace Yargon.Parsing
 
             this.Successful = successful;
             this.value = value;
-            this.Messages = messages;
+            this.Messages = messages.ToArray();
         }
         #endregion
 
@@ -136,7 +137,7 @@ namespace Yargon.Parsing
                 throw new ArgumentNullException(nameof(messages));
             #endregion
 
-            return Success(value, (IReadOnlyCollection<String>)messages);
+            return Success(value, (IEnumerable<String>)messages);
         }
 
         /// <summary>
@@ -146,7 +147,7 @@ namespace Yargon.Parsing
         /// <param name="value">The value.</param>
         /// <param name="messages">The messages.</param>
         /// <returns>The created result.</returns>
-        public static IResult<T> Success<T>([CanBeNull] T value, IReadOnlyCollection<String> messages)
+        public static IResult<T> Success<T>([CanBeNull] T value, IEnumerable<String> messages)
         {
             #region Contract
             if (messages == null)
@@ -179,7 +180,7 @@ namespace Yargon.Parsing
                 throw new ArgumentNullException(nameof(messages));
             #endregion
 
-            return Fail<T>((IReadOnlyCollection<String>) messages);
+            return Fail<T>((IEnumerable<String>) messages);
         }
 
         /// <summary>
@@ -188,14 +189,14 @@ namespace Yargon.Parsing
         /// <typeparam name="T">The type of value.</typeparam>
         /// <param name="messages">The messages.</param>
         /// <returns>The created result.</returns>
-        public static IResult<T> Fail<T>(IReadOnlyCollection<String> messages)
+        public static IResult<T> Fail<T>(IEnumerable<String> messages)
         {
             #region Contract
             if (messages == null)
                 throw new ArgumentNullException(nameof(messages));
             #endregion
 
-            return new Result<T>(false, default(T), List.Empty<String>());
+            return new Result<T>(false, default(T), messages);
         }
     }
 }

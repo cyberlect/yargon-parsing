@@ -88,7 +88,7 @@ namespace Yargon.Parsing
                     result = parser(remainder);
                 }
 
-                return ParseResult.Success<IEnumerable<T>, TToken>(remainder, results);
+                return ParseResult.Success<IEnumerable<T>, TToken>(remainder, ToExpectations(), results);
             }
 
             return Parser;
@@ -163,13 +163,13 @@ namespace Yargon.Parsing
                 {
                     var result = parser(remainder);
                     if (!result.Successful)
-                        return ParseResult.Fail<IEnumerable<TResult>, TToken>(input, $"Expected {count} repetitions, got {i}.");
+                        return ParseResult.Fail<IEnumerable<TResult>, TToken>(ToExpectations(), $"Expected {count} repetitions, got {i}.");
 
                     results.Add(result.Value);
                     remainder = result.Remainder;
                 }
 
-                return ParseResult.Success<IEnumerable<TResult>, TToken>(remainder, results);
+                return ParseResult.Success<IEnumerable<TResult>, TToken>(remainder, ToExpectations(), results);
             }
 
             return Parser;

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Yargon.Parsing
 {
@@ -22,6 +24,26 @@ namespace Yargon.Parsing
     public static partial class Parser
     {
         /// <summary>
+        /// Creates a sequence of expectations.
+        /// </summary>
+        /// <param name="expectations">The expectations.</param>
+        /// <returns>The sequence.</returns>
+        private static IEnumerable<String> ToExpectations(params string[] expectations)
+        {
+            return expectations?.Where(e => e != null) ?? Enumerable.Empty<String>();
+        }
+
+        /// <summary>
+        /// Creates a string of expectations.
+        /// </summary>
+        /// <param name="expectations">The expectations.</param>
+        /// <returns>The string.</returns>
+        private static String PrintExpectations(IEnumerable<String> expectations)
+        {
+            return String.Join(", ", expectations);
+        }
+
+        /// <summary>
         /// Creates a parser that negates the result of the parser.
         /// </summary>
         /// <typeparam name="T">The type of result of the parser.</typeparam>
@@ -43,12 +65,14 @@ namespace Yargon.Parsing
                     throw new ArgumentNullException(nameof(input));
                 #endregion
 
+                var expectations = ToExpectations(/* none */);
+
                 var result = parser(input);
 
                 if (result.Successful)
-                    return ParseResult.Fail<object, TToken>(input, "Not expected.");
+                    return ParseResult.Fail<object, TToken>(expectations, $"Unexpected {PrintExpectations(result.Expectations)}.");
                 else
-                    return ParseResult.Success(input, (object) null);
+                    return ParseResult.Success(input, expectations, (object) null);
             }
 
             return Parser;
@@ -80,13 +104,10 @@ namespace Yargon.Parsing
                 if (input == null)
                     throw new ArgumentNullException(nameof(input));
                 #endregion
-
+                
                 var result = parser(input);
-
-                if (result.Successful)
-                    return f(result.Value)(result.Remainder);
-                else
-                    return ParseResult.Fail<TResult, TToken>(input);
+                
+                return result.And(result.Successful ? f(result.Value)(result.Remainder) : ParseResult.Fail<TResult, TToken>(ToExpectations()));
             }
 
             return Parser;
@@ -143,15 +164,15 @@ namespace Yargon.Parsing
                 #endregion
 
                 var result1 = first(input);
-
+                
                 if (result1.Successful)
                 {
                     return result1;
                 }
                 else
                 {
-                    // TODO: Merge messages on failure.
-                    return second(input);
+                    var result2 = second(input);
+                    return result1.Or(result2);
                 }
             }
 
@@ -194,7 +215,7 @@ namespace Yargon.Parsing
                     return parser(input);
                 }
 
-                return ParseResult.Fail<TResult, TToken>(input, "Parser should not have succeeded.");
+                return ParseResult.Fail<TResult, TToken>(ToExpectations(), "Parser should not have succeeded.");
             }
 
             return Parser;

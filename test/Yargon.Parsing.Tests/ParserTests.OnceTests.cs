@@ -72,7 +72,7 @@ namespace Yargon.Parsing
 
                 // Assert
                 Assert.False(result.Successful);
-                Assert.Equal(new [] { "Error!"}, result.Messages);
+                Assert.Equal(new [] { "First parser error." }, result.Messages);
             }
 
             [Fact]

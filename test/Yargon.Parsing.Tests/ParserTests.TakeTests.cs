@@ -73,7 +73,7 @@ namespace Yargon.Parsing
 
                 // Assert
                 Assert.False(result.Successful);
-                Assert.Equal(new [] { "Error!" }, result.Messages);
+                Assert.Equal(new [] { "Expected 4 repetitions, got 3." }, result.Messages);
             }
 
             [Fact]

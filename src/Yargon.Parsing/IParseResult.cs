@@ -41,5 +41,12 @@ namespace Yargon.Parsing
         /// </summary>
         /// <value>The remaining token stream.</value>
         ITokenStream<TToken> Remainder { get; }
+
+        /// <summary>
+        /// Gets the names of the things that were expected by the parser,
+        /// whether it succeeded or failed.
+        /// </summary>
+        /// <value>A collection of expectations.</value>
+        IReadOnlyCollection<String> Expectations { get; }
     }
 }

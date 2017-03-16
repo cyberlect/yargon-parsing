@@ -86,7 +86,7 @@ namespace Yargon.Parsing
                     if (condition(result.Value))
                         return result;
                     else
-                        return ParseResult.Fail<TResult, TToken>(input, "Unexpected.");
+                        return ParseResult.Fail<TResult, TToken>(ToExpectations(), "Unexpected.");
                 }
                 else
                     return result;

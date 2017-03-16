@@ -69,7 +69,7 @@ namespace Yargon.Parsing
                 var result = parser(tokens);
 
                 // Assert
-                Assert.Equal(new[] { "Expected something else." }, result.Messages);
+                Assert.Equal(new[] { "Unexpected ." }, result.Messages);
             }
 
             [Fact]

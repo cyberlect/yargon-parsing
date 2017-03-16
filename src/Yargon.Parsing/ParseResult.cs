@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using JetBrains.Annotations;
 using Virtlink.Utilib.Collections;
@@ -41,23 +42,28 @@ namespace Yargon.Parsing
             }
         }
 
+        /// <inheritdoc />
+        public IReadOnlyCollection<string> Expectations { get; }
+
         #region Constructors
         /// <summary>
         /// Initializes a new instance of the <see cref="ParseResult"/> class.
         /// </summary>
         /// <param name="result">The result.</param>
-        /// <param name="remainder">The remaining tokens.</param>
-        public ParseResult(IResult<T> result, ITokenStream<TToken> remainder)
+        /// <param name="remainder">The remaining tokens; or <see langword="null"/>.</param>
+        /// <param name="expectations">The names of the things expected.</param>
+        public ParseResult(IResult<T> result, [CanBeNull] ITokenStream<TToken> remainder, IEnumerable<String> expectations)
         {
             #region Contract
             if (result == null)
                 throw new ArgumentNullException(nameof(result));
-            if (remainder == null)
-                throw new ArgumentNullException(nameof(remainder));
+            if (expectations == null)
+                throw new ArgumentNullException(nameof(expectations));
             #endregion
 
             this.Result = result;
-            this.remainder = remainder;
+            this.remainder = remainder ?? TokenStream.Empty<TToken>();
+            this.Expectations = expectations.ToList();
         }
         #endregion
 
@@ -116,22 +122,52 @@ namespace Yargon.Parsing
     /// </summary>
     public static class ParseResult
     {
+        internal static IParseResult<T, TToken> Or<T, TToken>(this IParseResult<T, TToken> first, IParseResult<T, TToken> second)
+        {
+            var messages = first.Messages.Concat(second.Messages).ToArray();
+            
+            if (first.Successful)
+                return first;
+            else if (second.Successful)
+                return second;
+            else if (first.Remainder.Count < second.Remainder.Count)
+                return first;
+            else if (first.Remainder.Count > second.Remainder.Count)
+                return second;
+            else
+                return ParseResult.Fail<T, TToken>(first.Expectations.Concat(second.Expectations), first.Messages.Concat(second.Messages));
+        }
+
+        internal static IParseResult<U, TToken> And<T, U, TToken>(this IParseResult<T, TToken> first, IParseResult<U, TToken> second)
+        {
+            var expectations = first.Expectations.Concat(second.Expectations);
+            var messages = first.Messages.Concat(second.Messages).ToArray();
+
+            if (first.Successful && second.Successful)
+                return ParseResult.Success(second.Remainder, expectations, second.Value, messages);
+            else
+                return ParseResult.Fail<U, TToken>(expectations, messages);
+        }
+
         /// <summary>
         /// Creates a successful parse result with the specified result and remaining tokens.
         /// </summary>
         /// <typeparam name="T">The type of value.</typeparam>
         /// <typeparam name="TToken">The type of tokens.</typeparam>
         /// <param name="remainder">The remaining tokens.</param>
+        /// <param name="expectations">The names of the things expected.</param>
         /// <param name="value">The resulting value.</param>
         /// <returns>The created result.</returns>
-        public static IParseResult<T, TToken> Success<T, TToken>(ITokenStream<TToken> remainder, [CanBeNull] T value)
+        public static IParseResult<T, TToken> Success<T, TToken>(ITokenStream<TToken> remainder, IEnumerable<String> expectations, [CanBeNull] T value)
         {
             #region Contract
             if (remainder == null)
                 throw new ArgumentNullException(nameof(remainder));
+            if (expectations == null)
+                throw new ArgumentNullException(nameof(expectations));
             #endregion
 
-            return Success(remainder, value, List.Empty<String>());
+            return Success(remainder, expectations, value, List.Empty<String>());
         }
 
         /// <summary>
@@ -140,20 +176,23 @@ namespace Yargon.Parsing
         /// <typeparam name="T">The type of value.</typeparam>
         /// <typeparam name="TToken">The type of tokens.</typeparam>
         /// <param name="remainder">The remaining tokens.</param>
+        /// <param name="expectations">The names of the things expected.</param>
         /// <param name="value">The resulting value.</param>
         /// <param name="messages">The messages.</param>
         /// <returns>The created result.</returns>
-        public static IParseResult<T, TToken> Success<T, TToken>(ITokenStream<TToken> remainder, [CanBeNull] T value,
+        public static IParseResult<T, TToken> Success<T, TToken>(ITokenStream<TToken> remainder, IEnumerable<String> expectations, [CanBeNull] T value,
             params string[] messages)
         {
             #region Contract
             if (remainder == null)
                 throw new ArgumentNullException(nameof(remainder));
+            if (expectations == null)
+                throw new ArgumentNullException(nameof(expectations));
             if (messages == null)
                 throw new ArgumentNullException(nameof(messages));
             #endregion
 
-            return Success(remainder, value, (IReadOnlyCollection<String>) messages);
+            return Success(remainder, expectations, value, (IEnumerable<String>) messages);
         }
 
         /// <summary>
@@ -162,20 +201,23 @@ namespace Yargon.Parsing
         /// <typeparam name="T">The type of value.</typeparam>
         /// <typeparam name="TToken">The type of tokens.</typeparam>
         /// <param name="remainder">The remaining tokens.</param>
+        /// <param name="expectations">The names of the things expected.</param>
         /// <param name="value">The resulting value.</param>
         /// <param name="messages">The messages.</param>
         /// <returns>The created result.</returns>
-        public static IParseResult<T, TToken> Success<T, TToken>(ITokenStream<TToken> remainder, [CanBeNull] T value,
-            IReadOnlyCollection<String> messages)
+        public static IParseResult<T, TToken> Success<T, TToken>(ITokenStream<TToken> remainder, IEnumerable<String> expectations, [CanBeNull] T value,
+            IEnumerable<String> messages)
         {
             #region Contract
             if (remainder == null)
                 throw new ArgumentNullException(nameof(remainder));
+            if (expectations == null)
+                throw new ArgumentNullException(nameof(expectations));
             if (messages == null)
                 throw new ArgumentNullException(nameof(messages));
             #endregion
 
-            return new ParseResult<T, TToken>(Result.Success(value, messages), remainder);
+            return new ParseResult<T, TToken>(Result.Success(value, messages), remainder, expectations);
         }
 
         /// <summary>
@@ -183,16 +225,16 @@ namespace Yargon.Parsing
         /// </summary>
         /// <typeparam name="T">The type of value.</typeparam>
         /// <typeparam name="TToken">The type of tokens.</typeparam>
-        /// <param name="remainder">The remaining tokens.</param>
+        /// <param name="expectations">The names of the things expected.</param>
         /// <returns>The created result.</returns>
-        public static IParseResult<T, TToken> Fail<T, TToken>(ITokenStream<TToken> remainder)
+        public static IParseResult<T, TToken> Fail<T, TToken>(IEnumerable<String> expectations)
         {
             #region Contract
-            if (remainder == null)
-                throw new ArgumentNullException(nameof(remainder));
+            if (expectations == null)
+                throw new ArgumentNullException(nameof(expectations));
             #endregion
 
-            return Fail<T, TToken>(remainder, List.Empty<String>());
+            return Fail<T, TToken>(expectations, List.Empty<String>());
         }
 
         /// <summary>
@@ -200,19 +242,19 @@ namespace Yargon.Parsing
         /// </summary>
         /// <typeparam name="T">The type of value.</typeparam>
         /// <typeparam name="TToken">The type of tokens.</typeparam>
-        /// <param name="remainder">The remaining tokens.</param>
+        /// <param name="expectations">The names of the things expected.</param>
         /// <param name="messages">The messages.</param>
         /// <returns>The created result.</returns>
-        public static IParseResult<T, TToken> Fail<T, TToken>(ITokenStream<TToken> remainder, params string[] messages)
+        public static IParseResult<T, TToken> Fail<T, TToken>(IEnumerable<String> expectations, params string[] messages)
         {
             #region Contract
-            if (remainder == null)
-                throw new ArgumentNullException(nameof(remainder));
+            if (expectations == null)
+                throw new ArgumentNullException(nameof(expectations));
             if (messages == null)
                 throw new ArgumentNullException(nameof(messages));
             #endregion
 
-            return Fail<T, TToken>(remainder, (IReadOnlyCollection<String>)messages);
+            return Fail<T, TToken>(expectations, (IEnumerable<String>)messages);
         }
 
         /// <summary>
@@ -220,19 +262,19 @@ namespace Yargon.Parsing
         /// </summary>
         /// <typeparam name="T">The type of value.</typeparam>
         /// <typeparam name="TToken">The type of tokens.</typeparam>
-        /// <param name="remainder">The remaining tokens.</param>
+        /// <param name="expectations">The names of the things expected.</param>
         /// <param name="messages">The messages.</param>
         /// <returns>The created result.</returns>
-        public static IParseResult<T, TToken> Fail<T, TToken>(ITokenStream<TToken> remainder, IReadOnlyCollection<String> messages)
+        public static IParseResult<T, TToken> Fail<T, TToken>(IEnumerable<String> expectations, IEnumerable<String> messages)
         {
             #region Contract
-            if (remainder == null)
-                throw new ArgumentNullException(nameof(remainder));
+            if (expectations == null)
+                throw new ArgumentNullException(nameof(expectations));
             if (messages == null)
                 throw new ArgumentNullException(nameof(messages));
             #endregion
 
-            return new ParseResult<T, TToken>(Result.Fail<T>(messages), remainder);
+            return new ParseResult<T, TToken>(Result.Fail<T>(messages), null, expectations);
         }
     }
 }

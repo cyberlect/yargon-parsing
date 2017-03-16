@@ -12,6 +12,11 @@ namespace Yargon.Parsing
     public sealed class TokenSequence<T> : ITokenStream<T>
     {
         /// <summary>
+        /// An empty token sequence.
+        /// </summary>
+        internal static TokenSequence<T> Empty { get; } = new TokenSequence<T>(Enumerable.Empty<T>());
+
+        /// <summary>
         /// The inner list.
         /// </summary>
         private readonly IReadOnlyList<T> innerList;
