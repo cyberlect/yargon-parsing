@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using JetBrains.Annotations;
 
 namespace Yargon.Parsing
 {
@@ -59,7 +62,7 @@ namespace Yargon.Parsing
         /// Creates a parser that succeeds only when the specified parser succeeds and the specified condition succeeds.
         /// </summary>
         /// <typeparam name="TResult">The type of result of the parser.</typeparam>
-        /// <typeparam name="TToken"></typeparam>
+        /// <typeparam name="TToken">The type of tokens.</typeparam>
         /// <param name="parser">The parser.</param>
         /// <param name="condition">The parser condition.</param>
         /// <returns>The created parser.</returns>
@@ -93,6 +96,284 @@ namespace Yargon.Parsing
             }
 
             return Parser;
+        }
+
+        /// <summary>
+        /// Creates a parser that returns the first result for which the condition succeeds,
+        /// or the specified default value when there are none.
+        /// </summary>
+        /// <typeparam name="T">The type of result.</typeparam>
+        /// <typeparam name="TToken">The type of tokens.</typeparam>
+        /// <param name="parser">The parser.</param>
+        /// <param name="condition">The condition.</param>
+        /// <param name="defaultValue">The default value.</param>
+        /// <returns>The created parser.</returns>
+        public static Parser<T, TToken> FirstOrDefault<T, TToken>(this Parser<IEnumerable<T>, TToken> parser, Predicate<T> condition,
+            [CanBeNull] T defaultValue)
+        {
+            #region Contract
+            if (parser == null)
+                throw new ArgumentNullException(nameof(parser));
+            if (condition == null)
+                throw new ArgumentNullException(nameof(condition));
+            #endregion
+
+            return parser.Select(e => e.Where(v => condition(v)).DefaultIfEmpty(defaultValue).FirstOrDefault());
+        }
+
+        /// <summary>
+        /// Creates a parser that returns the first result for which the condition succeeds,
+        /// or the default value when there are none.
+        /// </summary>
+        /// <typeparam name="T">The type of result.</typeparam>
+        /// <typeparam name="TToken">The type of tokens.</typeparam>
+        /// <param name="parser">The parser.</param>
+        /// <param name="condition">The condition.</param>
+        /// <returns>The created parser.</returns>
+        public static Parser<T, TToken> FirstOrDefault<T, TToken>(this Parser<IEnumerable<T>, TToken> parser, Predicate<T> condition)
+            => parser.FirstOrDefault(condition, default(T));
+
+        /// <summary>
+        /// Creates a parser that returns the first result,
+        /// or the default value when there are none.
+        /// </summary>
+        /// <typeparam name="T">The type of result.</typeparam>
+        /// <typeparam name="TToken">The type of tokens.</typeparam>
+        /// <param name="parser">The parser.</param>
+        /// <returns>The created parser.</returns>
+        public static Parser<T, TToken> FirstOrDefault<T, TToken>(this Parser<IEnumerable<T>, TToken> parser)
+            => parser.FirstOrDefault(v => true, default(T));
+
+        /// <summary>
+        /// Creates a parser that returns the first result for which the condition succeeds.
+        /// </summary>
+        /// <typeparam name="T">The type of result.</typeparam>
+        /// <typeparam name="TToken">The type of tokens.</typeparam>
+        /// <param name="parser">The parser.</param>
+        /// <param name="condition">The condition.</param>
+        /// <returns>The created parser.</returns>
+        public static Parser<T, TToken> First<T, TToken>(this Parser<IEnumerable<T>, TToken> parser, Predicate<T> condition)
+        {
+            #region Contract
+            if (parser == null)
+                throw new ArgumentNullException(nameof(parser));
+            if (condition == null)
+                throw new ArgumentNullException(nameof(condition));
+            #endregion
+
+            return parser.Select(e => e.First(v => condition(v)));
+        }
+
+        /// <summary>
+        /// Creates a parser that returns the first result.
+        /// </summary>
+        /// <typeparam name="T">The type of result.</typeparam>
+        /// <typeparam name="TToken">The type of tokens.</typeparam>
+        /// <param name="parser">The parser.</param>
+        /// <returns>The created parser.</returns>
+        public static Parser<T, TToken> First<T, TToken>(this Parser<IEnumerable<T>, TToken> parser)
+            => parser.First(v => true);
+
+        /// <summary>
+        /// Creates a parser that returns the last result for which the condition succeeds,
+        /// or the specified default value when there are none.
+        /// </summary>
+        /// <typeparam name="T">The type of result.</typeparam>
+        /// <typeparam name="TToken">The type of tokens.</typeparam>
+        /// <param name="parser">The parser.</param>
+        /// <param name="condition">The condition.</param>
+        /// <param name="defaultValue">The default value.</param>
+        /// <returns>The created parser.</returns>
+        public static Parser<T, TToken> LastOrDefault<T, TToken>(this Parser<IEnumerable<T>, TToken> parser, Predicate<T> condition,
+            [CanBeNull] T defaultValue)
+        {
+            #region Contract
+            if (parser == null)
+                throw new ArgumentNullException(nameof(parser));
+            if (condition == null)
+                throw new ArgumentNullException(nameof(condition));
+            #endregion
+
+            return parser.Select(e => e.Where(v => condition(v)).DefaultIfEmpty(defaultValue).LastOrDefault());
+        }
+
+        /// <summary>
+        /// Creates a parser that returns the last result for which the condition succeeds,
+        /// or the default value when there are none.
+        /// </summary>
+        /// <typeparam name="T">The type of result.</typeparam>
+        /// <typeparam name="TToken">The type of tokens.</typeparam>
+        /// <param name="parser">The parser.</param>
+        /// <param name="condition">The condition.</param>
+        /// <returns>The created parser.</returns>
+        public static Parser<T, TToken> LastOrDefault<T, TToken>(this Parser<IEnumerable<T>, TToken> parser, Predicate<T> condition)
+            => parser.LastOrDefault(condition, default(T));
+
+        /// <summary>
+        /// Creates a parser that returns the last result,
+        /// or the default value when there are none.
+        /// </summary>
+        /// <typeparam name="T">The type of result.</typeparam>
+        /// <typeparam name="TToken">The type of tokens.</typeparam>
+        /// <param name="parser">The parser.</param>
+        /// <returns>The created parser.</returns>
+        public static Parser<T, TToken> LastOrDefault<T, TToken>(this Parser<IEnumerable<T>, TToken> parser)
+            => parser.LastOrDefault(v => true, default(T));
+
+        /// <summary>
+        /// Creates a parser that returns the last result for which the condition succeeds.
+        /// </summary>
+        /// <typeparam name="T">The type of result.</typeparam>
+        /// <typeparam name="TToken">The type of tokens.</typeparam>
+        /// <param name="parser">The parser.</param>
+        /// <param name="condition">The condition.</param>
+        /// <returns>The created parser.</returns>
+        public static Parser<T, TToken> Last<T, TToken>(this Parser<IEnumerable<T>, TToken> parser, Predicate<T> condition)
+        {
+            #region Contract
+            if (parser == null)
+                throw new ArgumentNullException(nameof(parser));
+            if (condition == null)
+                throw new ArgumentNullException(nameof(condition));
+            #endregion
+
+            return parser.Select(e => e.Last(v => condition(v)));
+        }
+
+        /// <summary>
+        /// Creates a parser that returns the last result.
+        /// </summary>
+        /// <typeparam name="T">The type of result.</typeparam>
+        /// <typeparam name="TToken">The type of tokens.</typeparam>
+        /// <param name="parser">The parser.</param>
+        /// <returns>The created parser.</returns>
+        public static Parser<T, TToken> Last<T, TToken>(this Parser<IEnumerable<T>, TToken> parser)
+            => parser.Last(v => true);
+
+        /// <summary>
+        /// Creates a parser that returns the only result for which the condition succeeds,
+        /// or the specified default value when there are none.
+        /// </summary>
+        /// <typeparam name="T">The type of result.</typeparam>
+        /// <typeparam name="TToken">The type of tokens.</typeparam>
+        /// <param name="parser">The parser.</param>
+        /// <param name="condition">The condition.</param>
+        /// <param name="defaultValue">The default value.</param>
+        /// <returns>The created parser.</returns>
+        public static Parser<T, TToken> SingleOrDefault<T, TToken>(this Parser<IEnumerable<T>, TToken> parser, Predicate<T> condition,
+            [CanBeNull] T defaultValue)
+        {
+            #region Contract
+            if (parser == null)
+                throw new ArgumentNullException(nameof(parser));
+            if (condition == null)
+                throw new ArgumentNullException(nameof(condition));
+            #endregion
+
+            return parser.Select(e => e.Where(v => condition(v)).DefaultIfEmpty(defaultValue).SingleOrDefault());
+        }
+
+        /// <summary>
+        /// Creates a parser that returns the only result for which the condition succeeds,
+        /// or the default value when there are none.
+        /// </summary>
+        /// <typeparam name="T">The type of result.</typeparam>
+        /// <typeparam name="TToken">The type of tokens.</typeparam>
+        /// <param name="parser">The parser.</param>
+        /// <param name="condition">The condition.</param>
+        /// <returns>The created parser.</returns>
+        public static Parser<T, TToken> SingleOrDefault<T, TToken>(this Parser<IEnumerable<T>, TToken> parser, Predicate<T> condition)
+            => parser.SingleOrDefault(condition, default(T));
+
+        /// <summary>
+        /// Creates a parser that returns the only result,
+        /// or the default value when there are none.
+        /// </summary>
+        /// <typeparam name="T">The type of result.</typeparam>
+        /// <typeparam name="TToken">The type of tokens.</typeparam>
+        /// <param name="parser">The parser.</param>
+        /// <returns>The created parser.</returns>
+        public static Parser<T, TToken> SingleOrDefault<T, TToken>(this Parser<IEnumerable<T>, TToken> parser)
+            => parser.SingleOrDefault(v => true, default(T));
+
+        /// <summary>
+        /// Creates a parser that returns the only result for which the condition succeeds.
+        /// </summary>
+        /// <typeparam name="T">The type of result.</typeparam>
+        /// <typeparam name="TToken">The type of tokens.</typeparam>
+        /// <param name="parser">The parser.</param>
+        /// <param name="condition">The condition.</param>
+        /// <returns>The created parser.</returns>
+        public static Parser<T, TToken> Single<T, TToken>(this Parser<IEnumerable<T>, TToken> parser, Predicate<T> condition)
+        {
+            #region Contract
+            if (parser == null)
+                throw new ArgumentNullException(nameof(parser));
+            if (condition == null)
+                throw new ArgumentNullException(nameof(condition));
+            #endregion
+
+            return parser.Select(e => e.Single(v => condition(v)));
+        }
+
+        /// <summary>
+        /// Creates a parser that returns the only result.
+        /// </summary>
+        /// <typeparam name="T">The type of result.</typeparam>
+        /// <typeparam name="TToken">The type of tokens.</typeparam>
+        /// <param name="parser">The parser.</param>
+        /// <returns>The created parser.</returns>
+        public static Parser<T, TToken> Single<T, TToken>(this Parser<IEnumerable<T>, TToken> parser)
+            => parser.Single(v => true);
+
+        /// <summary>
+        /// Creates a parser that returns whether there is any result for which the condition succeeds.
+        /// </summary>
+        /// <typeparam name="T">The type of result.</typeparam>
+        /// <typeparam name="TToken">The type of tokens.</typeparam>
+        /// <param name="parser">The parser.</param>
+        /// <param name="condition">The condition.</param>
+        /// <returns>The created parser.</returns>
+        public static Parser<bool, TToken> Any<T, TToken>(this Parser<IEnumerable<T>, TToken> parser, Predicate<T> condition)
+        {
+            #region Contract
+            if (parser == null)
+                throw new ArgumentNullException(nameof(parser));
+            if (condition == null)
+                throw new ArgumentNullException(nameof(condition));
+            #endregion
+
+            return parser.Select(e => e.Any(v => condition(v)));
+        }
+
+        /// <summary>
+        /// Creates a parser that returns whether there is any result.
+        /// </summary>
+        /// <typeparam name="T">The type of result.</typeparam>
+        /// <typeparam name="TToken">The type of tokens.</typeparam>
+        /// <param name="parser">The parser.</param>
+        /// <returns>The created parser.</returns>
+        public static Parser<bool, TToken> Any<T, TToken>(this Parser<IEnumerable<T>, TToken> parser)
+            => parser.Any(v => true);
+
+        /// <summary>
+        /// Creates a parser that returns whether there the condition succeeds for all results.
+        /// </summary>
+        /// <typeparam name="T">The type of result.</typeparam>
+        /// <typeparam name="TToken">The type of tokens.</typeparam>
+        /// <param name="parser">The parser.</param>
+        /// <param name="condition">The condition.</param>
+        /// <returns>The created parser.</returns>
+        public static Parser<bool, TToken> All<T, TToken>(this Parser<IEnumerable<T>, TToken> parser, Predicate<T> condition)
+        {
+            #region Contract
+            if (parser == null)
+                throw new ArgumentNullException(nameof(parser));
+            if (condition == null)
+                throw new ArgumentNullException(nameof(condition));
+            #endregion
+
+            return parser.Select(e => e.All(v => condition(v)));
         }
     }
 }

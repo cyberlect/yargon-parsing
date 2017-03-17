@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard1.4</TargetFramework>
-    <VersionPrefix>1.0.5</VersionPrefix>
+    <VersionPrefix>1.0.6</VersionPrefix>
     <VersionSuffix></VersionSuffix>
     <Authors>Daniel Pelsmaeker</Authors>
     <Company>Daniel Pelsmaeker</Company>
