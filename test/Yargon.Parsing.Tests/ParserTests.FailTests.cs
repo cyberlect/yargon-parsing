@@ -44,7 +44,7 @@ namespace Yargon.Parsing
             {
                 // Arrange
                 string message = "Error message.";
-                var parser = Parser.Fail<String, Token<TokenType>>(message);
+                var parser = Parser.Fail<String, Token<TokenType>>().WithMessage(message);
                 var tokens = CreateTokenStream(TokenType.Zero, TokenType.One, TokenType.Zero);
 
                 // Act

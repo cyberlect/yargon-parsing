@@ -61,7 +61,7 @@ namespace Yargon.Parsing
             public void ReturnedParser_ShouldFailWithAMessage()
             {
                 // Arrange
-                var originalParser = SuccessParser<String>();
+                var originalParser = SuccessParser<String>().Named("success");
                 var parser = originalParser.Not();
                 var tokens = CreateTokenStream(TokenType.Zero, TokenType.One, TokenType.Zero);
 
@@ -69,7 +69,7 @@ namespace Yargon.Parsing
                 var result = parser(tokens);
 
                 // Assert
-                Assert.Equal(new[] { "Unexpected ." }, result.Messages);
+                Assert.Equal(new[] { "Unexpected success." }, result.Messages);
             }
 
             [Fact]

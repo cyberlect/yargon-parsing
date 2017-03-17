@@ -48,23 +48,24 @@ namespace Yargon.Parsing
             public void ReturnedParser_ShouldReturnConcatenatedInputParserMessages_WhenInputParserSucceeds()
             {
                 // Arrange
-                var firstParser = Parser.Token<Token<TokenType>>(t => t.Type == TokenType.Zero);
+                var firstParser = Parser.Token<Token<TokenType>>(t => t.Type == TokenType.Zero)
+                    .WithMessage("Parser for token zero.");
                 var parser = firstParser.AtLeastOnce();
-                var tokens = CreateTokenStream(TokenType.Zero, TokenType.One, TokenType.Zero);
+                var tokens = CreateTokenStream(TokenType.Zero, TokenType.Zero, TokenType.One);
 
                 // Act
                 var result = parser(tokens);
 
                 // Assert
                 Assert.True(result.Successful);
-                Assert.Equal(new [] { "" }, result.Messages);
+                Assert.Equal(new [] { "Parser for token zero.", "Parser for token zero." }, result.Messages);
             }
 
             [Fact]
             public void ReturnedParser_ShouldReturnErrorMessage_WhenInputParserFailsImmediately()
             {
                 // Arrange
-                var firstParser = FailParser<String>("First parser error.");
+                var firstParser = FailParser<String>().WithMessage("First parser error.");
                 var parser = firstParser.AtLeastOnce();
                 var tokens = CreateTokenStream(TokenType.Zero, TokenType.One, TokenType.Zero);
 

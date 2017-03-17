@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Virtlink.Utilib.Collections;
 using Xunit;
 
@@ -46,7 +47,7 @@ namespace Yargon.Parsing
             {
                 // Arrange
                 string message = "Some message.";
-                var parser = Parser.Fail<Int32, Token<TokenType>>(message).Then(v => Parser.Return<String, Token<TokenType>>("abc"));
+                var parser = Parser.Fail<Int32, Token<TokenType>>().WithMessage(message).Then(v => Parser.Return<String, Token<TokenType>>("abc"));
                 var tokens = CreateTokenStream(TokenType.Zero, TokenType.One, TokenType.Zero);
 
                 // Act
@@ -57,18 +58,18 @@ namespace Yargon.Parsing
             }
 
             [Fact]
-            public void ReturnedParser_ShouldReturnMessagesOfSecondParser_WhenFirstParserSucceeds()
+            public void ReturnedParser_ShouldReturnMessagesOfFirstAndSecondParser_WhenFirstParserSucceeds()
             {
                 // Arrange
-                string message = "Some message.";
-                var parser = SuccessParser<Int32>().Then(v => Parser.Fail<String, Token<TokenType>>(message));
+                var parser = SuccessParser<Int32>().WithMessage("First message.")
+                    .Then(v => Parser.Fail<String, Token<TokenType>>().WithMessage("Second message."));
                 var tokens = CreateTokenStream(TokenType.Zero, TokenType.One, TokenType.Zero);
 
                 // Act
                 var result = parser(tokens);
 
                 // Assert
-                Assert.Equal(new[] { message }, result.Messages);
+                Assert.Equal(new[] { "First message.", "Second message." }.OrderBy(m => m), result.Messages.OrderBy(m => m));
             }
 
             [Fact]

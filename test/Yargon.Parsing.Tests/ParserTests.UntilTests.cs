@@ -51,8 +51,8 @@ namespace Yargon.Parsing
             public void ReturnedParser_ShouldReturnConcatenatedInputParserMessages_WhileUntilParserSucceeds()
             {
                 // Arrange
-                var firstParser = Parser.Token<Token<TokenType>>(t => t.Type == TokenType.Zero);
-                var untilParser = SuccessParser<String>();
+                var firstParser = Parser.Token<Token<TokenType>>(t => true).WithMessage("Parser message.");
+                var untilParser = FailParser<String>();
                 var parser = firstParser.Until(untilParser);
                 var tokens = CreateTokenStream(TokenType.Zero, TokenType.One, TokenType.Zero);
 
@@ -61,7 +61,7 @@ namespace Yargon.Parsing
 
                 // Assert
                 Assert.True(result.Successful);
-                Assert.Equal(new [] { "" }, result.Messages);
+                Assert.Equal(new [] { "Parser message.", "Parser message.", "Parser message." }, result.Messages);
             }
 
             [Fact]

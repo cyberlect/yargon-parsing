@@ -12,12 +12,6 @@ namespace Yargon.Parsing
     public interface IParseResult<out T, out TToken>
     {
         /// <summary>
-        /// Gets the actual result.
-        /// </summary>
-        /// <value>The actual result.</value>
-        IResult<T> Result { get; }
-
-        /// <summary>
         /// Gets whether the operation successfully completed.
         /// </summary>
         /// <value><see langword="true"/> when the operation was successful;
@@ -37,9 +31,12 @@ namespace Yargon.Parsing
         IReadOnlyCollection<String> Messages { get; }
 
         /// <summary>
-        /// Gets the remaining token stream after the operation successfully completed.
+        /// Gets the remaining token stream after the operation completed.
         /// </summary>
         /// <value>The remaining token stream.</value>
+        /// <remarks>
+        /// This is the stream of tokens after the operation succeeded or failed.
+        /// </remarks>
         ITokenStream<TToken> Remainder { get; }
 
         /// <summary>

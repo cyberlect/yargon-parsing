@@ -8,9 +8,9 @@ namespace Yargon.Parsing
     partial class ParserTests
     {
         /// <summary>
-        /// Tests the <see cref="Parser.Or"/> method.
+        /// Tests the <see cref="Parser.Otherwise"/> method.
         /// </summary>
-        public sealed class OrTests : ParserCombinatorTests
+        public sealed class OtherwiseTests : ParserCombinatorTests
         {
             [Fact]
             public void ReturnedParser_ShouldReturnResultOfFirstParser_WhenFirstParserSucceeds()
@@ -19,7 +19,7 @@ namespace Yargon.Parsing
                 string value = "abc";
                 var firstParser = SuccessParser<String>(value);
                 var secondParser = FailParser<String>();
-                var parser = firstParser.Or(secondParser);
+                var parser = firstParser.Otherwise(secondParser);
                 var tokens = CreateTokenStream(TokenType.Zero, TokenType.One, TokenType.Zero);
 
                 // Act
@@ -37,7 +37,7 @@ namespace Yargon.Parsing
                 string value = "abc";
                 var firstParser = FailParser<String>();
                 var secondParser = SuccessParser<String>(value);
-                var parser = firstParser.Or(secondParser);
+                var parser = firstParser.Otherwise(secondParser);
                 var tokens = CreateTokenStream(TokenType.Zero, TokenType.One, TokenType.Zero);
 
                 // Act
@@ -54,7 +54,7 @@ namespace Yargon.Parsing
                 // Arrange
                 var firstParser = FailParser<String>();
                 var secondParser = FailParser<String>();
-                var parser = firstParser.Or(secondParser);
+                var parser = firstParser.Otherwise(secondParser);
                 var tokens = CreateTokenStream(TokenType.Zero, TokenType.One, TokenType.Zero);
 
                 // Act
@@ -68,9 +68,9 @@ namespace Yargon.Parsing
             public void ReturnedParser_ShouldReturnMessagesOfBothParsers_WhenBothParsersFailAndConsumedTheSameNumberOfTokens()
             {
                 // Arrange
-                var firstParser = ConsumingParser(2).Then(FailParser<String>("First parser error."));
-                var secondParser = ConsumingParser(2).Then(FailParser<String>("Second parser error."));
-                var parser = firstParser.Or(secondParser);
+                var firstParser = ConsumingParser(2).Then(FailParser<String>().WithMessage("First parser error."));
+                var secondParser = ConsumingParser(2).Then(FailParser<String>().WithMessage("Second parser error."));
+                var parser = firstParser.Otherwise(secondParser);
                 var tokens = CreateTokenStream(TokenType.Zero, TokenType.One, TokenType.Zero);
 
                 // Act
@@ -85,9 +85,9 @@ namespace Yargon.Parsing
             public void ReturnedParser_ShouldReturnMessagesOfFirstParser_WhenBothParsersFailAndTheFirstParserConsumedMoreTokens()
             {
                 // Arrange
-                var firstParser = ConsumingParser(2).Then(FailParser<String>("First parser error."));
-                var secondParser = ConsumingParser(1).Then(FailParser<String>("Second parser error."));
-                var parser = firstParser.Or(secondParser);
+                var firstParser = ConsumingParser(2).Then(FailParser<String>().WithMessage("First parser error."));
+                var secondParser = ConsumingParser(1).Then(FailParser<String>().WithMessage("Second parser error."));
+                var parser = firstParser.Otherwise(secondParser);
                 var tokens = CreateTokenStream(TokenType.Zero, TokenType.One, TokenType.Zero);
 
                 // Act
@@ -102,9 +102,9 @@ namespace Yargon.Parsing
             public void ReturnedParser_ShouldReturnMessagesOfSecondParser_WhenBothParsersFailAndTheSecondParserConsumedMoreTokens()
             {
                 // Arrange
-                var firstParser = ConsumingParser(1).Then(FailParser<String>("First parser error."));
-                var secondParser = ConsumingParser(2).Then(FailParser<String>("Second parser error."));
-                var parser = firstParser.Or(secondParser);
+                var firstParser = ConsumingParser(1).Then(FailParser<String>().WithMessage("First parser error."));
+                var secondParser = ConsumingParser(2).Then(FailParser<String>().WithMessage("Second parser error."));
+                var parser = firstParser.Otherwise(secondParser);
                 var tokens = CreateTokenStream(TokenType.Zero, TokenType.One, TokenType.Zero);
 
                 // Act
@@ -121,7 +121,7 @@ namespace Yargon.Parsing
                 // Arrange
                 var firstParser = SuccessParser<String>();
                 var secondParser = SuccessParser<String>();
-                var parser = firstParser.Or(secondParser);
+                var parser = firstParser.Otherwise(secondParser);
 
                 // Act
                 var exception = Record.Exception(() =>
@@ -142,7 +142,7 @@ namespace Yargon.Parsing
                 // Act
                 var exception = Record.Exception(() =>
                 {
-                    Parser.Or(null, secondParser);
+                    Parser.Otherwise(null, secondParser);
                 });
 
                 // Assert
@@ -158,7 +158,7 @@ namespace Yargon.Parsing
                 // Act
                 var exception = Record.Exception(() =>
                 {
-                    Parser.Or(firstParser, null);
+                    Parser.Otherwise(firstParser, null);
                 });
 
                 // Assert

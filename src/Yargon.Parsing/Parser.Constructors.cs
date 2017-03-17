@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using JetBrains.Annotations;
 
 namespace Yargon.Parsing
@@ -37,7 +34,8 @@ namespace Yargon.Parsing
                     throw new ArgumentNullException(nameof(input));
                 #endregion
 
-                return ParseResult.Success(input, ToExpectations(description), value);
+                return ParseResult.Success(value, input)
+                    .WithExpectation(description);
             }
 
             return Parser;
@@ -48,9 +46,8 @@ namespace Yargon.Parsing
         /// </summary>
         /// <typeparam name="T">The type of result of the parser.</typeparam>
         /// <typeparam name="TToken">The type of tokens in the token stream.</typeparam>
-        /// <param name="messages">The messages.</param>
         /// <returns>The created parser.</returns>
-        public static Parser<T, TToken> Fail<T, TToken>(params string[] messages)
+        public static Parser<T, TToken> Fail<T, TToken>()
         {
             IParseResult<T, TToken> Parser(ITokenStream<TToken> input)
             {
@@ -59,7 +56,7 @@ namespace Yargon.Parsing
                     throw new ArgumentNullException(nameof(input));
                 #endregion
 
-                return ParseResult.Fail<T, TToken>(ToExpectations(), messages);
+                return ParseResult.Fail<T, TToken>(input);
             }
 
             return Parser;
@@ -97,19 +94,26 @@ namespace Yargon.Parsing
                     throw new ArgumentNullException(nameof(input));
                 #endregion
 
-                var expectations = ToExpectations(description);
-
                 if (input.AtEnd)
-                    return ParseResult.Fail<TToken, TToken>(expectations, "Unexpected end of input.");
+                {
+                    return ParseResult.Fail<TToken, TToken>(input)
+                        .WithMessage("Unexpected end of input.");
+                }
 
                 var token = input.Current;
                 if (predicate(token))
-                    return ParseResult.Success(input.Advance(), expectations, token);
+                {
+                    return ParseResult.Success(token, input.Advance());
+                }
                 else
-                    return ParseResult.Fail<TToken, TToken>(expectations, $"Expected {description ?? input.Current.ToString()}, got {input.Current}.");
+                {
+                    return ParseResult.Fail<TToken, TToken>(input)
+                        .WithMessage($"Unexpected token {input.Current}.");
+                }
             }
 
-            return Parser;
+            Parser<TToken, TToken> parser = Parser;
+            return parser.Named(description);
         }
 
         /// <summary>
@@ -125,16 +129,20 @@ namespace Yargon.Parsing
                 if (input == null)
                     throw new ArgumentNullException(nameof(input));
                 #endregion
-
-                var expectations = ToExpectations("end of input");
-
+                
                 if (input.AtEnd)
-                    return ParseResult.Success(input, expectations, default(object));
+                {
+                    return ParseResult.Success(default(object), input)
+                        .WithExpectation("end of input");
+                }
                 else
-                    return ParseResult.Fail<object, TToken>(expectations, $"Expected end of input, got {input.Current}.");
+                    return ParseResult.Fail<object, TToken>(input)
+                        .WithMessage($"Unexpected token {input.Current}.")
+                        .WithExpectation("end of input");
             }
-
-            return Parser;
+            
+            Parser<object, TToken> parser = Parser;
+            return parser.Named("end of input");
         }
     }
 }

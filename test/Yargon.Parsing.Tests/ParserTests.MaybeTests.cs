@@ -64,7 +64,7 @@ namespace Yargon.Parsing
             public void ReturnedParser_ShouldReturnNoMessages_WhenInputParserFails()
             {
                 // Arrange
-                var firstParser = FailParser<String>("First parser error.");
+                var firstParser = FailParser<String>().WithMessage("First parser error.");
                 var parser = firstParser.Maybe();
                 var tokens = CreateTokenStream(TokenType.Zero, TokenType.One, TokenType.Zero);
 

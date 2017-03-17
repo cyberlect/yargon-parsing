@@ -20,7 +20,7 @@ namespace Yargon.Parsing
                 throw new ArgumentNullException(nameof(parser));
             #endregion
 
-            return parser.Once().Or(Return<IEnumerable<T>, TToken>(Enumerable.Empty<T>()));
+            return parser.Once().Otherwise(Return<IEnumerable<T>, TToken>(Enumerable.Empty<T>()));
         }
 
         /// <summary>
@@ -54,41 +54,43 @@ namespace Yargon.Parsing
                 throw new ArgumentNullException(nameof(parser));
             #endregion
 
-            return parser.Once().Then(first => parser.Many().Select(first.Concat));
+            return parser.Once().Concat(parser.Many());
         }
 
         /// <summary>
         /// Creates a parser that parses a sequence of zero or more elements.
         /// </summary>
-        /// <typeparam name="T">The type of result of the parser.</typeparam>
+        /// <typeparam name="TResult">The type of result of the parser.</typeparam>
         /// <typeparam name="TToken">The type of tokens.</typeparam>
         /// <param name="parser">The parser to repeat.</param>
         /// <returns>The created parser.</returns>
-        public static Parser<IEnumerable<T>, TToken> Many<T, TToken>(this Parser<T, TToken> parser)
+        public static Parser<IEnumerable<TResult>, TToken> Many<TResult, TToken>(this Parser<TResult, TToken> parser)
         {
             #region Contract
             if (parser == null)
                 throw new ArgumentNullException(nameof(parser));
             #endregion
 
-            IParseResult<IEnumerable<T>, TToken> Parser(ITokenStream<TToken> input)
+            IParseResult<IEnumerable<TResult>, TToken> Parser(ITokenStream<TToken> input)
             {
                 #region Contract
                 if (input == null)
                     throw new ArgumentNullException(nameof(input));
                 #endregion
 
-                var results = new List<T>();
+                var results = new List<IParseResult<TResult, TToken>>();
                 var remainder = input;
                 var result = parser(remainder);
                 while (result.Successful)
                 {
-                    results.Add(result.Value);
+                    results.Add(result);
                     remainder = result.Remainder;
                     result = parser(remainder);
                 }
-
-                return ParseResult.Success<IEnumerable<T>, TToken>(remainder, ToExpectations(), results);
+                
+                return ParseResult.Success(results.Select(r => r.Value), remainder)
+                    .WithExpectation($"many of {String.Join(", ", results.SelectMany(r => r.Expectations).Distinct())}")
+                    .WithMessages(results.SelectMany(r => r.Messages));
             }
 
             return Parser;
@@ -112,7 +114,7 @@ namespace Yargon.Parsing
                 throw new ArgumentNullException(nameof(until));
             #endregion
             
-            return parser.Except(until).Many().Then(v => until.Select(_ => v));
+            return parser.Except(until).Many();
         }
 
         /// <summary>
@@ -157,21 +159,31 @@ namespace Yargon.Parsing
                     throw new ArgumentNullException(nameof(input));
                 #endregion
 
-                var results = new List<TResult>();
+                var results = new List<IParseResult<TResult, TToken>>();
                 var remainder = input;
                 for (int i = 0; i < count; i++)
                 {
                     var result = parser(remainder);
                     if (!result.Successful)
-                        return ParseResult.Fail<IEnumerable<TResult>, TToken>(ToExpectations(), $"Expected {count} repetitions, got {i}.");
+                    {
+                        string message = result.Remainder.AtEnd
+                            ? "Unexpected end of input."
+                            : $"Unexpected {result.Remainder.Current}.";
 
-                    results.Add(result.Value);
+                        return ParseResult.Fail<IEnumerable<TResult>, TToken>(input)
+                            .WithMessage(message)
+                            .WithExpectation($"{count} repetitions of {String.Join(", ", result.Expectations)}");
+                    }
+
+                    results.Add(result);
                     remainder = result.Remainder;
                 }
 
-                return ParseResult.Success<IEnumerable<TResult>, TToken>(remainder, ToExpectations(), results);
+                return ParseResult.Success(results.Select(r => r.Value), remainder)
+                    .WithExpectation($"{count} repetitions of {String.Join(", ", results.SelectMany(r => r.Expectations).Distinct())}")
+                    .WithMessages(results.SelectMany(r => r.Messages));
             }
-
+            
             return Parser;
         }
     }

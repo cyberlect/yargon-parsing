@@ -33,8 +33,8 @@ namespace Yargon.Parsing
         /// <typeparam name="T">The type of value.</typeparam>
         /// <param name="messages">The error messages.</param>
         /// <returns>The parser.</returns>
-        protected static Parser<T, Token<TokenType>> FailParser<T>(params string[] messages)
-            => Parser.Fail<T, Token<TokenType>>(messages);
+        protected static Parser<T, Token<TokenType>> FailParser<T>()
+            => Parser.Fail<T, Token<TokenType>>();
 
         /// <summary>
         /// Creates a parser that consumes a fixed number of tokens.

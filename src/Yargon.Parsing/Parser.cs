@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using JetBrains.Annotations;
 
 namespace Yargon.Parsing
 {
@@ -21,28 +22,13 @@ namespace Yargon.Parsing
     /// <summary>
     /// Functions for working with parsers.
     /// </summary>
+    /// <remarks>
+    /// When a parser function fails, it will fail with a message explaining
+    /// what unexpected things the parser encountered. For best results, ensure
+    /// your tokens implement a human-readable <see cref="Object.ToString"/> method.
+    /// </remarks>
     public static partial class Parser
     {
-        /// <summary>
-        /// Creates a sequence of expectations.
-        /// </summary>
-        /// <param name="expectations">The expectations.</param>
-        /// <returns>The sequence.</returns>
-        private static IEnumerable<String> ToExpectations(params string[] expectations)
-        {
-            return expectations?.Where(e => e != null) ?? Enumerable.Empty<String>();
-        }
-
-        /// <summary>
-        /// Creates a string of expectations.
-        /// </summary>
-        /// <param name="expectations">The expectations.</param>
-        /// <returns>The string.</returns>
-        private static String PrintExpectations(IEnumerable<String> expectations)
-        {
-            return String.Join(", ", expectations);
-        }
-
         /// <summary>
         /// Creates a parser that negates the result of the parser.
         /// </summary>
@@ -65,14 +51,21 @@ namespace Yargon.Parsing
                     throw new ArgumentNullException(nameof(input));
                 #endregion
 
-                var expectations = ToExpectations(/* none */);
-
                 var result = parser(input);
 
                 if (result.Successful)
-                    return ParseResult.Fail<object, TToken>(expectations, $"Unexpected {PrintExpectations(result.Expectations)}.");
+                {
+                    string message = result.Expectations.Any()
+                        ? $"Unexpected {String.Join(", ", result.Expectations)}."
+                        : "Unexpected token.";
+
+                    return ParseResult.Fail<object, TToken>(input)
+                        .WithMessage(message);
+                }
                 else
-                    return ParseResult.Success(input, expectations, (object) null);
+                {
+                    return ParseResult.Success(default(object), input);
+                }
             }
 
             return Parser;
@@ -104,10 +97,19 @@ namespace Yargon.Parsing
                 if (input == null)
                     throw new ArgumentNullException(nameof(input));
                 #endregion
-                
+
                 var result = parser(input);
-                
-                return result.And(result.Successful ? f(result.Value)(result.Remainder) : ParseResult.Fail<TResult, TToken>(ToExpectations()));
+                if (!result.Successful)
+                {
+                    return ParseResult.Fail<TResult, TToken>(result.Remainder)
+                        .WithMessages(result.Messages)
+                        .WithExpectations(result.Expectations);
+                }
+                else
+                {
+                    return f(result.Value)(result.Remainder)
+                        .WithMessages(result.Messages);
+                }
             }
 
             return Parser;
@@ -140,14 +142,14 @@ namespace Yargon.Parsing
         /// <summary>
         /// Creates a parser that tries the first parser, and if it fails, continues with the second parser.
         /// </summary>
-        /// <typeparam name="TReturn">The type of result of the parsers.</typeparam>
+        /// <typeparam name="TResult">The type of result of the parsers.</typeparam>
         /// <typeparam name="TToken">The type of tokens in the token stream.</typeparam>
         /// <param name="first">The first parser.</param>
         /// <param name="second">The second parser.</param>
         /// <returns>The created parser.</returns>
-        public static Parser<TReturn, TToken> Or<TReturn, TToken>(
-            this Parser<TReturn, TToken> first,
-            Parser<TReturn, TToken> second)
+        public static Parser<TResult, TToken> Otherwise<TResult, TToken>(
+            this Parser<TResult, TToken> first,
+            Parser<TResult, TToken> second)
         {
             #region Contract
             if (first == null)
@@ -156,7 +158,7 @@ namespace Yargon.Parsing
                 throw new ArgumentNullException(nameof(second));
             #endregion
 
-            IParseResult<TReturn, TToken> Parser(ITokenStream<TToken> input)
+            IParseResult<TResult, TToken> Parser(ITokenStream<TToken> input)
             {
                 #region Contract
                 if (input == null)
@@ -164,16 +166,12 @@ namespace Yargon.Parsing
                 #endregion
 
                 var result1 = first(input);
-                
                 if (result1.Successful)
-                {
                     return result1;
-                }
-                else
-                {
-                    var result2 = second(input);
-                    return result1.Or(result2);
-                }
+
+                var result2 = second(input);
+
+                return result1.Or(result2);
             }
 
             return Parser;
@@ -198,7 +196,26 @@ namespace Yargon.Parsing
             if (except == null)
                 throw new ArgumentNullException(nameof(except));
             #endregion
-            
+
+            return except.Not().Then(parser);
+        }
+
+        /// <summary>
+        /// Creates a parser with the specified name, as used in error messages.
+        /// </summary>
+        /// <typeparam name="TResult">The type of result of the parser.</typeparam>
+        /// <typeparam name="TToken">The type of tokens.</typeparam>
+        /// <param name="parser">The parser.</param>
+        /// <param name="description">A description of the value; or <see langword="null"/> to specify none.</param>
+        /// <returns>The created parser.</returns>
+        public static Parser<TResult, TToken> Named<TResult, TToken>(this Parser<TResult, TToken> parser,
+            [CanBeNull] string description)
+        {
+            #region Contract
+            if (parser == null)
+                throw new ArgumentNullException(nameof(parser));
+            #endregion
+
             IParseResult<TResult, TToken> Parser(ITokenStream<TToken> input)
             {
                 #region Contract
@@ -206,16 +223,37 @@ namespace Yargon.Parsing
                     throw new ArgumentNullException(nameof(input));
                 #endregion
 
-                var result = except(input);
+                return parser(input)
+                    .WithExpectation(description);
+            }
 
-                if (!result.Successful)
-                {
-                    // TODO: If this fails, create a new failure result with the input of this function
-                    // (instead of whatever input failed down the line).
-                    return parser(input);
-                }
+            return Parser;
+        }
 
-                return ParseResult.Fail<TResult, TToken>(ToExpectations(), "Parser should not have succeeded.");
+        /// <summary>
+        /// Creates a parser that returns the specified message.
+        /// </summary>
+        /// <typeparam name="TResult">The type of result of the parser.</typeparam>
+        /// <typeparam name="TToken">The type of tokens.</typeparam>
+        /// <param name="parser">The parser.</param>
+        /// <param name="message">The message; or <see langword="null"/> to specify none.</param>
+        /// <returns>The created parser.</returns>
+        public static Parser<TResult, TToken> WithMessage<TResult, TToken>(this Parser<TResult, TToken> parser, [CanBeNull] string message)
+        {
+            #region Contract
+            if (parser == null)
+                throw new ArgumentNullException(nameof(parser));
+            #endregion
+
+            IParseResult<TResult, TToken> Parser(ITokenStream<TToken> input)
+            {
+                #region Contract
+                if (input == null)
+                    throw new ArgumentNullException(nameof(input));
+                #endregion
+
+                return parser(input)
+                    .WithMessage(message);
             }
 
             return Parser;

@@ -66,7 +66,7 @@ namespace Yargon.Parsing
                 var result = parser(tokens);
 
                 // Assert
-                Assert.Equal(new [] { "Expected zero, got zero." }, result.Messages);
+                Assert.Equal(new [] { "Unexpected token zero." }, result.Messages);
             }
 
             [Fact]

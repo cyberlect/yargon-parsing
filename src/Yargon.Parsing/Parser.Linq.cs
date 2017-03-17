@@ -80,16 +80,16 @@ namespace Yargon.Parsing
                 #endregion
 
                 var result = parser(input);
-
-                if (result.Successful)
+                return result.OnSuccess(r =>
                 {
-                    if (condition(result.Value))
-                        return result;
-                    else
-                        return ParseResult.Fail<TResult, TToken>(ToExpectations(), "Unexpected.");
-                }
-                else
-                    return result;
+                    if (!condition(result.Value))
+                    {
+                        return ParseResult.Fail<TResult, TToken>(input)
+                            .WithMessage($"Unexpected {String.Join(", ", r.Expectations)}");
+                    }
+
+                    return r;
+                });
             }
 
             return Parser;

@@ -65,7 +65,7 @@ namespace Yargon.Parsing
             {
                 // Arrange
                 var firstParser = SuccessParser<String>();
-                var exceptParser = SuccessParser<String>();
+                var exceptParser = SuccessParser<String>().Named("success");
                 var parser = firstParser.Except(exceptParser);
                 var tokens = CreateTokenStream(TokenType.Zero, TokenType.One, TokenType.Zero);
 
@@ -74,15 +74,15 @@ namespace Yargon.Parsing
 
                 // Assert
                 Assert.False(result.Successful);
-                Assert.Equal(new [] { "Parser should not have succeeded." }, result.Messages);
+                Assert.Equal(new [] { "Unexpected success." }, result.Messages);
             }
 
             [Fact]
             public void ReturnedParser_ShouldReturnMessagesOfFirstParser_WhenExceptParserAndFirstParserFail()
             {
                 // Arrange
-                var firstParser = FailParser<String>("First parser error.");
-                var exceptParser = FailParser<String>("Except parser error.");
+                var firstParser = FailParser<String>().WithMessage("First parser error.");
+                var exceptParser = FailParser<String>().WithMessage("Except parser error.");
                 var parser = firstParser.Except(exceptParser);
                 var tokens = CreateTokenStream(TokenType.Zero, TokenType.One, TokenType.Zero);
 
