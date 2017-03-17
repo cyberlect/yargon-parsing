@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Yargon.Parsing
+﻿namespace Yargon.Parsing
 {
     /// <summary>
     /// Specifies the kind of message.
