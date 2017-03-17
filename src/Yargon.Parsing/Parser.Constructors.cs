@@ -97,7 +97,7 @@ namespace Yargon.Parsing
                 if (input.AtEnd)
                 {
                     return ParseResult.Fail<TToken, TToken>(input)
-                        .WithMessage("Unexpected end of input.");
+                        .WithMessage(Error("Unexpected end of input.", input));
                 }
 
                 var token = input.Current;
@@ -108,7 +108,7 @@ namespace Yargon.Parsing
                 else
                 {
                     return ParseResult.Fail<TToken, TToken>(input)
-                        .WithMessage($"Unexpected token {input.Current}.");
+                        .WithMessage(Error($"Unexpected token {input.Current}.", input));
                 }
             }
 
@@ -129,16 +129,18 @@ namespace Yargon.Parsing
                 if (input == null)
                     throw new ArgumentNullException(nameof(input));
                 #endregion
-                
+
                 if (input.AtEnd)
                 {
                     return ParseResult.Success(default(object), input)
                         .WithExpectation("end of input");
                 }
                 else
+                {
                     return ParseResult.Fail<object, TToken>(input)
-                        .WithMessage($"Unexpected token {input.Current}.")
+                        .WithMessage(Error($"Unexpected token {input.Current}.", input))
                         .WithExpectation("end of input");
+                }
             }
             
             Parser<object, TToken> parser = Parser;

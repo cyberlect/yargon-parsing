@@ -29,6 +29,19 @@ namespace Yargon.Parsing
     public static partial class Parser
     {
         /// <summary>
+        /// Creates a parse error message.
+        /// </summary>
+        /// <typeparam name="TToken">The type of tokens.</typeparam>
+        /// <param name="text">The message text.</param>
+        /// <param name="tokens">The token stream where the error occurred.</param>
+        /// <returns>The resulting message.</returns>
+        internal static Message Error<TToken>(string text, ITokenStream<TToken> tokens)
+        {
+            // TODO: Source location.
+            return Message.Error(text);
+        }
+
+        /// <summary>
         /// Creates a parser that negates the result of the parser.
         /// </summary>
         /// <typeparam name="T">The type of result of the parser.</typeparam>
@@ -59,7 +72,7 @@ namespace Yargon.Parsing
                         : "Unexpected token.";
 
                     return ParseResult.Fail<object, TToken>(input)
-                        .WithMessage(message);
+                        .WithMessage(Error(message, result.Remainder));
                 }
                 else
                 {
@@ -237,7 +250,7 @@ namespace Yargon.Parsing
         /// <param name="parser">The parser.</param>
         /// <param name="message">The message; or <see langword="null"/> to specify none.</param>
         /// <returns>The created parser.</returns>
-        public static Parser<TResult, TToken> WithMessage<TResult, TToken>(this Parser<TResult, TToken> parser, [CanBeNull] string message)
+        public static Parser<TResult, TToken> WithMessage<TResult, TToken>(this Parser<TResult, TToken> parser, [CanBeNull] IMessage message)
         {
             #region Contract
             if (parser == null)

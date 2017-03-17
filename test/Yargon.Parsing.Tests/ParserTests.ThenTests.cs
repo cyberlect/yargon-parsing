@@ -46,30 +46,29 @@ namespace Yargon.Parsing
             public void ReturnedParser_ShouldReturnMessagesOfFirstParser_WhenFirstParserFails()
             {
                 // Arrange
-                string message = "Some message.";
-                var parser = Parser.Fail<Int32, Token<TokenType>>().WithMessage(message).Then(v => Parser.Return<String, Token<TokenType>>("abc"));
+                var parser = Parser.Fail<Int32, Token<TokenType>>().WithMessage(Message.Error("Some message.")).Then(v => Parser.Return<String, Token<TokenType>>("abc"));
                 var tokens = CreateTokenStream(TokenType.Zero, TokenType.One, TokenType.Zero);
 
                 // Act
                 var result = parser(tokens);
 
                 // Assert
-                Assert.Equal(new[] { message }, result.Messages);
+                Assert.Equal(new[] { "Some message." }, result.Messages.Select(m => m.Text));
             }
 
             [Fact]
             public void ReturnedParser_ShouldReturnMessagesOfFirstAndSecondParser_WhenFirstParserSucceeds()
             {
                 // Arrange
-                var parser = SuccessParser<Int32>().WithMessage("First message.")
-                    .Then(v => Parser.Fail<String, Token<TokenType>>().WithMessage("Second message."));
+                var parser = SuccessParser<Int32>().WithMessage(Message.Error("First message."))
+                    .Then(v => Parser.Fail<String, Token<TokenType>>().WithMessage(Message.Error("Second message.")));
                 var tokens = CreateTokenStream(TokenType.Zero, TokenType.One, TokenType.Zero);
 
                 // Act
                 var result = parser(tokens);
 
                 // Assert
-                Assert.Equal(new[] { "First message.", "Second message." }.OrderBy(m => m), result.Messages.OrderBy(m => m));
+                Assert.Equal(new[] { "First message.", "Second message." }.OrderBy(m => m), result.Messages.OrderBy(m => m.Text).Select(m => m.Text));
             }
 
             [Fact]

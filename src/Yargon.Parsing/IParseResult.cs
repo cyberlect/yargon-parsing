@@ -27,7 +27,7 @@ namespace Yargon.Parsing
         /// Gets the messages that resulted from the operation.
         /// </summary>
         /// <value>The messages.</value>
-        IReadOnlyCollection<String> Messages { get; }
+        IReadOnlyCollection<IMessage> Messages { get; }
 
         /// <summary>
         /// Gets the remaining token stream after the operation completed.

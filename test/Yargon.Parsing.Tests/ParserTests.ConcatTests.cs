@@ -83,8 +83,8 @@ namespace Yargon.Parsing
             public void ReturnedParser_ShouldConcatenatedInputParserMessages_WhenInputParsersSucceed()
             {
                 // Arrange
-                var firstParser = SuccessParser(new[] { "a", "b" }).WithMessage("First parser message.");
-                var secondParser = SuccessParser(new[] { "c", "d" }).WithMessage("Second parser message.");
+                var firstParser = SuccessParser(new[] { "a", "b" }).WithMessage(Message.Error("First parser message."));
+                var secondParser = SuccessParser(new[] { "c", "d" }).WithMessage(Message.Error("Second parser message."));
                 var parser = firstParser.Concat(secondParser);
                 var tokens = CreateTokenStream(TokenType.Zero, TokenType.One, TokenType.Zero);
 
@@ -93,15 +93,15 @@ namespace Yargon.Parsing
 
                 // Assert
                 Assert.True(result.Successful);
-                Assert.Equal(new [] { "First parser message.", "Second parser message." }.OrderBy(m => m), result.Messages.OrderBy(m => m));
+                Assert.Equal(new [] { "First parser message.", "Second parser message." }.OrderBy(m => m), result.Messages.OrderBy(m => m.Text).Select(m => m.Text));
             }
 
             [Fact]
             public void ReturnedParser_ShouldReturnFirstInputMessages_WhenFirstInputParserFails()
             {
                 // Arrange
-                var firstParser = FailParser<IEnumerable<String>>().WithMessage("First parser message.");
-                var secondParser = SuccessParser(new[] { "c", "d" }).WithMessage("Second parser message.");
+                var firstParser = FailParser<IEnumerable<String>>().WithMessage(Message.Error("First parser message."));
+                var secondParser = SuccessParser(new[] { "c", "d" }).WithMessage(Message.Error("Second parser message."));
                 var parser = firstParser.Concat(secondParser);
                 var tokens = CreateTokenStream(TokenType.Zero, TokenType.One, TokenType.Zero);
 
@@ -110,15 +110,15 @@ namespace Yargon.Parsing
 
                 // Assert
                 Assert.False(result.Successful);
-                Assert.Equal(new[] { "First parser message." }, result.Messages);
+                Assert.Equal(new[] { "First parser message." }, result.Messages.Select(m => m.Text));
             }
 
             [Fact]
             public void ReturnedParser_ShouldReturnFirstAndSecondInputMessages_WhenSecondInputParserFails()
             {
                 // Arrange
-                var firstParser = SuccessParser(new[] { "a", "b" }).WithMessage("First parser message.");
-                var secondParser = FailParser<IEnumerable<String>>().WithMessage("Second parser message.");
+                var firstParser = SuccessParser(new[] { "a", "b" }).WithMessage(Message.Error("First parser message."));
+                var secondParser = FailParser<IEnumerable<String>>().WithMessage(Message.Error("Second parser message."));
                 var parser = firstParser.Concat(secondParser);
                 var tokens = CreateTokenStream(TokenType.Zero, TokenType.One, TokenType.Zero);
 
@@ -127,7 +127,7 @@ namespace Yargon.Parsing
 
                 // Assert
                 Assert.False(result.Successful);
-                Assert.Equal(new[] { "First parser message.", "Second parser message." }.OrderBy(m => m), result.Messages.OrderBy(m => m));
+                Assert.Equal(new[] { "First parser message.", "Second parser message." }.OrderBy(m => m), result.Messages.OrderBy(m => m.Text).Select(m => m.Text));
             }
 
             [Fact]

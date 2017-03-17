@@ -52,7 +52,7 @@ namespace Yargon.Parsing
                 var result = parser(tokens);
 
                 // Assert
-                Assert.Equal(List.Empty<String>(), result.Messages);
+                Assert.Empty(result.Messages);
             }
 
             [Fact]
@@ -66,7 +66,7 @@ namespace Yargon.Parsing
                 var result = parser(tokens);
 
                 // Assert
-                Assert.Equal(new [] { "Unexpected token zero." }, result.Messages);
+                Assert.Equal(new [] { "Unexpected token zero." }, result.Messages.Select(m => m.Text));
             }
 
             [Fact]

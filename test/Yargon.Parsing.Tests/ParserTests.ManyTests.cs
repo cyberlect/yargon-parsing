@@ -49,7 +49,7 @@ namespace Yargon.Parsing
             public void ReturnedParser_ShouldReturnConcatenatedInputParserMessages_WhenInputParserSucceeds()
             {
                 // Arrange
-                var firstParser = Parser.Token<Token<TokenType>>(t => t.Type == TokenType.Zero).WithMessage("Parser message.");
+                var firstParser = Parser.Token<Token<TokenType>>(t => t.Type == TokenType.Zero).WithMessage(Message.Error("Parser message."));
                 var parser = firstParser.Many();
                 var tokens = CreateTokenStream(TokenType.Zero, TokenType.Zero, TokenType.One);
 
@@ -58,7 +58,7 @@ namespace Yargon.Parsing
 
                 // Assert
                 Assert.True(result.Successful);
-                Assert.Equal(new [] { "Parser message.", "Parser message." }, result.Messages);
+                Assert.Equal(new [] { "Parser message.", "Parser message." }, result.Messages.Select(m => m.Text));
             }
 
             [Fact]

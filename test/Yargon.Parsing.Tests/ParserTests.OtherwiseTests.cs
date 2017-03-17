@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Xml.XPath;
 using Virtlink.Utilib.Collections;
 using Xunit;
@@ -68,8 +69,8 @@ namespace Yargon.Parsing
             public void ReturnedParser_ShouldReturnMessagesOfBothParsers_WhenBothParsersFailAndConsumedTheSameNumberOfTokens()
             {
                 // Arrange
-                var firstParser = ConsumingParser(2).Then(FailParser<String>().WithMessage("First parser error."));
-                var secondParser = ConsumingParser(2).Then(FailParser<String>().WithMessage("Second parser error."));
+                var firstParser = ConsumingParser(2).Then(FailParser<String>().WithMessage(Message.Error("First parser error.")));
+                var secondParser = ConsumingParser(2).Then(FailParser<String>().WithMessage(Message.Error("Second parser error.")));
                 var parser = firstParser.Otherwise(secondParser);
                 var tokens = CreateTokenStream(TokenType.Zero, TokenType.One, TokenType.Zero);
 
@@ -78,15 +79,15 @@ namespace Yargon.Parsing
 
                 // Assert
                 Assert.False(result.Successful);
-                Assert.Equal(new [] { "First parser error.", "Second parser error." }, result.Messages);
+                Assert.Equal(new [] { "First parser error.", "Second parser error." }.OrderBy(m => m), result.Messages.OrderBy(m => m.Text).Select(m => m.Text));
             }
 
             [Fact]
             public void ReturnedParser_ShouldReturnMessagesOfFirstParser_WhenBothParsersFailAndTheFirstParserConsumedMoreTokens()
             {
                 // Arrange
-                var firstParser = ConsumingParser(2).Then(FailParser<String>().WithMessage("First parser error."));
-                var secondParser = ConsumingParser(1).Then(FailParser<String>().WithMessage("Second parser error."));
+                var firstParser = ConsumingParser(2).Then(FailParser<String>().WithMessage(Message.Error("First parser error.")));
+                var secondParser = ConsumingParser(1).Then(FailParser<String>().WithMessage(Message.Error("Second parser error.")));
                 var parser = firstParser.Otherwise(secondParser);
                 var tokens = CreateTokenStream(TokenType.Zero, TokenType.One, TokenType.Zero);
 
@@ -95,15 +96,15 @@ namespace Yargon.Parsing
 
                 // Assert
                 Assert.False(result.Successful);
-                Assert.Equal(new[] { "First parser error." }, result.Messages);
+                Assert.Equal(new[] { "First parser error." }, result.Messages.Select(m => m.Text));
             }
 
             [Fact]
             public void ReturnedParser_ShouldReturnMessagesOfSecondParser_WhenBothParsersFailAndTheSecondParserConsumedMoreTokens()
             {
                 // Arrange
-                var firstParser = ConsumingParser(1).Then(FailParser<String>().WithMessage("First parser error."));
-                var secondParser = ConsumingParser(2).Then(FailParser<String>().WithMessage("Second parser error."));
+                var firstParser = ConsumingParser(1).Then(FailParser<String>().WithMessage(Message.Error("First parser error.")));
+                var secondParser = ConsumingParser(2).Then(FailParser<String>().WithMessage(Message.Error("Second parser error.")));
                 var parser = firstParser.Otherwise(secondParser);
                 var tokens = CreateTokenStream(TokenType.Zero, TokenType.One, TokenType.Zero);
 
@@ -112,7 +113,7 @@ namespace Yargon.Parsing
 
                 // Assert
                 Assert.False(result.Successful);
-                Assert.Equal(new[] { "Second parser error." }, result.Messages);
+                Assert.Equal(new[] { "Second parser error." }, result.Messages.Select(m => m.Text));
             }
             
             [Fact]

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Xml.XPath;
 using Virtlink.Utilib.Collections;
 using Xunit;
@@ -63,7 +64,7 @@ namespace Yargon.Parsing
             public void ReturnedParser_ShouldReturnErrorMessage_WhenInputParserFails()
             {
                 // Arrange
-                var firstParser = FailParser<String>().WithMessage("First parser error.");
+                var firstParser = FailParser<String>().WithMessage(Message.Error("First parser error."));
                 var parser = firstParser.Once();
                 var tokens = CreateTokenStream(TokenType.Zero, TokenType.One, TokenType.Zero);
 
@@ -72,7 +73,7 @@ namespace Yargon.Parsing
 
                 // Assert
                 Assert.False(result.Successful);
-                Assert.Equal(new [] { "First parser error." }, result.Messages);
+                Assert.Equal(new [] { "First parser error." }, result.Messages.Select(m => m.Text));
             }
 
             [Fact]

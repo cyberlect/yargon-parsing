@@ -87,6 +87,78 @@ namespace Yargon.Parsing
         public static bool operator !=(Message left, Message right) => !(left == right);
         #endregion
 
+        /// <summary>
+        /// Creates a new info <see cref="Message"/> with the specified text.
+        /// </summary>
+        /// <param name="text">The message text.</param>
+        /// <returns>The created message.</returns>
+        public static Message Info(string text)
+            => Info(text, SourceRange.Empty);
+
+        /// <summary>
+        /// Creates a new info <see cref="Message"/> with the specified text.
+        /// </summary>
+        /// <param name="text">The message text.</param>
+        /// <param name="range">The source range to which the message applies.</param>
+        /// <returns>The created message.</returns>
+        public static Message Info(string text, SourceRange range)
+        {
+            #region Contract
+            if (text == null)
+                throw new ArgumentNullException(nameof(text));
+            #endregion
+            
+            return new Message(MessageSeverity.Info, text, range);
+        }
+
+        /// <summary>
+        /// Creates a new warning <see cref="Message"/> with the specified text.
+        /// </summary>
+        /// <param name="text">The message text.</param>
+        /// <returns>The created message.</returns>
+        public static Message Warning(string text)
+            => Warning(text, SourceRange.Empty);
+
+        /// <summary>
+        /// Creates a new warning <see cref="Message"/> with the specified text.
+        /// </summary>
+        /// <param name="text">The message text.</param>
+        /// <param name="range">The source range to which the message applies.</param>
+        /// <returns>The created message.</returns>
+        public static Message Warning(string text, SourceRange range)
+        {
+            #region Contract
+            if (text == null)
+                throw new ArgumentNullException(nameof(text));
+            #endregion
+
+            return new Message(MessageSeverity.Warning, text, range);
+        }
+
+        /// <summary>
+        /// Creates a new error <see cref="Message"/> with the specified text.
+        /// </summary>
+        /// <param name="text">The message text.</param>
+        /// <returns>The created message.</returns>
+        public static Message Error(string text)
+            => Error(text, SourceRange.Empty);
+        
+        /// <summary>
+        /// Creates a new error <see cref="Message"/> with the specified text.
+        /// </summary>
+        /// <param name="text">The message text.</param>
+        /// <param name="range">The source range to which the message applies.</param>
+        /// <returns>The created message.</returns>
+        public static Message Error(string text, SourceRange range)
+        {
+            #region Contract
+            if (text == null)
+                throw new ArgumentNullException(nameof(text));
+            #endregion
+
+            return new Message(MessageSeverity.Error, text, range);
+        }
+
         /// <inheritdoc />
         public override string ToString()
         {

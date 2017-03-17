@@ -49,7 +49,7 @@ namespace Yargon.Parsing
             {
                 // Arrange
                 var firstParser = Parser.Token<Token<TokenType>>(t => t.Type == TokenType.Zero)
-                    .WithMessage("Parser for token zero.");
+                    .WithMessage(Message.Error("Parser for token zero."));
                 var parser = firstParser.AtLeastOnce();
                 var tokens = CreateTokenStream(TokenType.Zero, TokenType.Zero, TokenType.One);
 
@@ -58,14 +58,14 @@ namespace Yargon.Parsing
 
                 // Assert
                 Assert.True(result.Successful);
-                Assert.Equal(new [] { "Parser for token zero.", "Parser for token zero." }, result.Messages);
+                Assert.Equal(new [] { "Parser for token zero.", "Parser for token zero." }, result.Messages.Select(m => m.Text));
             }
 
             [Fact]
             public void ReturnedParser_ShouldReturnErrorMessage_WhenInputParserFailsImmediately()
             {
                 // Arrange
-                var firstParser = FailParser<String>().WithMessage("First parser error.");
+                var firstParser = FailParser<String>().WithMessage(Message.Error("First parser error."));
                 var parser = firstParser.AtLeastOnce();
                 var tokens = CreateTokenStream(TokenType.Zero, TokenType.One, TokenType.Zero);
 
@@ -74,7 +74,7 @@ namespace Yargon.Parsing
 
                 // Assert
                 Assert.False(result.Successful);
-                Assert.Equal(new [] { "First parser error." }, result.Messages);
+                Assert.Equal(new [] { "First parser error." }, result.Messages.Select(m => m.Text));
             }
 
             [Fact]

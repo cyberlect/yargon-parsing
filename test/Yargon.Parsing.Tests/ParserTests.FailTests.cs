@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Virtlink.Utilib.Collections;
 using Xunit;
 
@@ -36,22 +37,21 @@ namespace Yargon.Parsing
                 var result = parser(tokens);
 
                 // Assert
-                Assert.Equal(List.Empty<String>(), result.Messages);
+                Assert.Empty(result.Messages);
             }
 
             [Fact]
             public void ReturnedParser_ShouldReturnMessages_WhenGivenMessages()
             {
                 // Arrange
-                string message = "Error message.";
-                var parser = Parser.Fail<String, Token<TokenType>>().WithMessage(message);
+                var parser = Parser.Fail<String, Token<TokenType>>().WithMessage(Message.Error("Error message."));
                 var tokens = CreateTokenStream(TokenType.Zero, TokenType.One, TokenType.Zero);
 
                 // Act
                 var result = parser(tokens);
 
                 // Assert
-                Assert.Equal(new [] { message }, result.Messages);
+                Assert.Equal(new [] { "Error message." }, result.Messages.Select(m => m.Text));
             }
 
             [Fact]

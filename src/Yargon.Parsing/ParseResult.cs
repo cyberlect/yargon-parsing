@@ -20,7 +20,7 @@ namespace Yargon.Parsing
         public T Value { get; }
 
         /// <inheritdoc />
-        public IReadOnlyCollection<string> Messages { get; }
+        public IReadOnlyCollection<IMessage> Messages { get; }
         
         /// <inheritdoc />
         public ITokenStream<TToken> Remainder { get; }
@@ -37,7 +37,7 @@ namespace Yargon.Parsing
         /// <param name="messages">The messages produced by the operation.</param>
         /// <param name="remainder">The remaining tokens.</param>
         /// <param name="expectations">The names of the things expected.</param>
-        internal ParseResult(bool successful, [CanBeNull] T value, IEnumerable<String> messages, ITokenStream<TToken> remainder, IEnumerable<String> expectations)
+        internal ParseResult(bool successful, [CanBeNull] T value, IEnumerable<IMessage> messages, ITokenStream<TToken> remainder, IEnumerable<String> expectations)
         {
             #region Contract
             if (messages == null)
@@ -63,7 +63,7 @@ namespace Yargon.Parsing
             return !Object.ReferenceEquals(other, null)
                 && this.Successful == other.Successful
                 && Object.Equals(this.Value, other.Value)
-                && MultiSetComparer<String>.Default.Equals(this.Messages, other.Messages)
+                && MultiSetComparer<IMessage>.Default.Equals(this.Messages, other.Messages)
                 && Object.Equals(this.Remainder, other.Remainder)
                 && MultiSetComparer<String>.Default.Equals(this.Expectations, other.Expectations);
         }
@@ -76,7 +76,7 @@ namespace Yargon.Parsing
             {
                 hash = hash * 29 + this.Successful.GetHashCode();
                 hash = hash * 29 + this.Value?.GetHashCode() ?? 0;
-                hash = hash * 29 + MultiSetComparer<String>.Default.GetHashCode(this.Messages);
+                hash = hash * 29 + MultiSetComparer<IMessage>.Default.GetHashCode(this.Messages);
                 hash = hash * 29 + this.Remainder.GetHashCode();
                 hash = hash * 29 + MultiSetComparer<String>.Default.GetHashCode(this.Expectations);
             }
@@ -137,7 +137,7 @@ namespace Yargon.Parsing
             return new ParseResult<T, TToken>(
                 true,
                 value,
-                Collection.Empty<String>(),
+                Collection.Empty<IMessage>(),
                 remainder,
                 Collection.Empty<String>()
                 );
@@ -160,7 +160,7 @@ namespace Yargon.Parsing
             return new ParseResult<T, TToken>(
                 false,
                 default(T),
-                Collection.Empty<String>(),
+                Collection.Empty<IMessage>(),
                 remainder,
                 Collection.Empty<String>()
                 );
@@ -174,7 +174,7 @@ namespace Yargon.Parsing
         /// <param name="result">The parse result to modify.</param>
         /// <param name="message">The message to add; or <see langword="null"/>.</param>
         /// <returns>The parse result.</returns>
-        public static IParseResult<T, TToken> WithMessage<T, TToken>(this IParseResult<T, TToken> result, [CanBeNull] string message)
+        public static IParseResult<T, TToken> WithMessage<T, TToken>(this IParseResult<T, TToken> result, [CanBeNull] IMessage message)
         {
             #region Contract
             if (result == null)
@@ -192,7 +192,7 @@ namespace Yargon.Parsing
         /// <param name="result">The parse result to modify.</param>
         /// <param name="messages">The messages to add.</param>
         /// <returns>The parse result.</returns>
-        public static IParseResult<T, TToken> WithMessages<T, TToken>(this IParseResult<T, TToken> result, IEnumerable<String> messages)
+        public static IParseResult<T, TToken> WithMessages<T, TToken>(this IParseResult<T, TToken> result, IEnumerable<IMessage> messages)
         {
             #region Contract
             if (result == null)

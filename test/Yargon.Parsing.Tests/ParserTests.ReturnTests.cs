@@ -53,7 +53,7 @@ namespace Yargon.Parsing
                 var result = parser(tokens);
 
                 // Assert
-                Assert.Equal(List.Empty<String>(), result.Messages);
+                Assert.Empty(result.Messages);
             }
 
             [Fact]

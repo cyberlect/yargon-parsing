@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Xml.XPath;
 using Virtlink.Utilib.Collections;
 using Xunit;
@@ -74,15 +75,15 @@ namespace Yargon.Parsing
 
                 // Assert
                 Assert.False(result.Successful);
-                Assert.Equal(new [] { "Unexpected success." }, result.Messages);
+                Assert.Equal(new [] { "Unexpected success." }, result.Messages.Select(m => m.Text));
             }
 
             [Fact]
             public void ReturnedParser_ShouldReturnMessagesOfFirstParser_WhenExceptParserAndFirstParserFail()
             {
                 // Arrange
-                var firstParser = FailParser<String>().WithMessage("First parser error.");
-                var exceptParser = FailParser<String>().WithMessage("Except parser error.");
+                var firstParser = FailParser<String>().WithMessage(Message.Error("First parser error."));
+                var exceptParser = FailParser<String>().WithMessage(Message.Error("Except parser error."));
                 var parser = firstParser.Except(exceptParser);
                 var tokens = CreateTokenStream(TokenType.Zero, TokenType.One, TokenType.Zero);
 
@@ -91,7 +92,7 @@ namespace Yargon.Parsing
 
                 // Assert
                 Assert.False(result.Successful);
-                Assert.Equal(new[] { "First parser error." }, result.Messages);
+                Assert.Equal(new[] { "First parser error." }, result.Messages.Select(m => m.Text));
             }
 
             [Fact]

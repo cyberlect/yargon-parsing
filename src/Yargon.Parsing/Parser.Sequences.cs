@@ -171,7 +171,7 @@ namespace Yargon.Parsing
                             : $"Unexpected {result.Remainder.Current}.";
 
                         return ParseResult.Fail<IEnumerable<TResult>, TToken>(input)
-                            .WithMessage(message)
+                            .WithMessage(Error(message, result.Remainder))
                             .WithExpectation($"{count} repetitions of {String.Join(", ", result.Expectations)}");
                     }
 

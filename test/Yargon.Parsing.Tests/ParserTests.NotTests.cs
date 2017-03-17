@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Virtlink.Utilib.Collections;
 using Xunit;
 
@@ -54,7 +55,7 @@ namespace Yargon.Parsing
                 var result = parser(tokens);
 
                 // Assert
-                Assert.Equal(List.Empty<String>(), result.Messages);
+                Assert.Empty(result.Messages);
             }
 
             [Fact]
@@ -69,7 +70,7 @@ namespace Yargon.Parsing
                 var result = parser(tokens);
 
                 // Assert
-                Assert.Equal(new[] { "Unexpected success." }, result.Messages);
+                Assert.Equal(new[] { "Unexpected success." }, result.Messages.Select(m => m.Text));
             }
 
             [Fact]

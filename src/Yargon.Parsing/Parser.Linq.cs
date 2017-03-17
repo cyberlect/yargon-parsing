@@ -85,7 +85,7 @@ namespace Yargon.Parsing
                     if (!condition(result.Value))
                     {
                         return ParseResult.Fail<TResult, TToken>(input)
-                            .WithMessage($"Unexpected {String.Join(", ", r.Expectations)}");
+                            .WithMessage(Error($"Unexpected {String.Join(", ", r.Expectations)}", result.Remainder));
                     }
 
                     return r;
